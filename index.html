@@ -755,6 +755,7 @@ const presets = [
     id:"capacity",
     name:"ภารกิจเพิ่ม แต่กำลังคนจำกัด",
     description:"ดูว่างานค้างเกิดจากคนไม่พอหรือกระบวนการ",
+    pressure:"ภาระงานและกำลังคน",
     workGrowth:30,staffCut:10,digitalGain:25,friction:15,
     structure:"keep",stress:"none",external:"none"
   },
@@ -762,6 +763,7 @@ const presets = [
     id:"structure",
     name:"รวมทีมบริการและทีมพื้นที่",
     description:"ทดสอบต้นทุนช่วงเปลี่ยนผ่านและคอขวดใหม่",
+    pressure:"ปรับโครงสร้าง · งบตึงตัว",
     workGrowth:15,staffCut:5,digitalGain:20,friction:20,
     structure:"merge",stress:"absence",external:"budget"
   },
@@ -769,8 +771,25 @@ const presets = [
     id:"chiangrai",
     name:"เชียงราย: ทีมติดตามคุณภาพน้ำ",
     description:"จำลองการประสานงานเก็บตัวอย่าง ส่งแล็บ และแจ้งผล",
+    pressure:"ภารกิจพื้นที่ · เหตุฉุกเฉิน",
     workGrowth:40,staffCut:10,digitalGain:25,friction:25,
     structure:"keep",stress:"surge",external:"disaster"
+  },
+  {
+    id:"flood",
+    name:"อุทกภัย: ประสานทีมพื้นที่และศูนย์ช่วยเหลือ",
+    description:"ทดสอบการรับแจ้งเหตุ สำรวจความเสียหาย และส่งความช่วยเหลือข้ามหน่วย",
+    pressure:"ภัยพิบัติ · งานพุ่งฉับพลัน",
+    workGrowth:55,staffCut:15,digitalGain:15,friction:28,
+    structure:"keep",stress:"surge",external:"disaster"
+  },
+  {
+    id:"cyber",
+    name:"ระบบดิจิทัลขัดข้อง: รักษาความต่อเนื่องบริการ",
+    description:"ทดสอบทางเลือกเมื่อระบบกลางใช้ไม่ได้และต้องมีช่องทางสำรองให้ประชาชน",
+    pressure:"ภัยไซเบอร์ · บริการต่อเนื่อง",
+    workGrowth:20,staffCut:8,digitalGain:30,friction:18,
+    structure:"keep",stress:"none",external:"cyber"
   }
 ];
 
@@ -1012,6 +1031,7 @@ $("scenarioCards").innerHTML = presets.map((scenario,index)=>`
     <span class="badge">SCENARIO 0${index+1}</span>
     <h3 style="margin-top:12px">${esc(scenario.name)}</h3>
     <p class="muted">${esc(scenario.description)}</p>
+    <div class="gap"><span class="tag">${esc(scenario.pressure)}</span></div>
     <button data-preset="${index}">โหลดสถานการณ์</button>
   </article>
 `).join("");
