@@ -1957,6 +1957,7 @@ $("generateAI").onclick=()=>{
 
   generatedScenario={
     ...base,
+    id:"ai-"+uid(),
     name:"AI จำลอง: "+text.slice(0,120),
     description:"Scenario ที่สร้างจาก rule-based keywords และค่าตัวเลขที่ตรวจพบ",
     structure:mergeDetected?"merge":base.structure
