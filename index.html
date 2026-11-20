@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Young-Mai-Dai-Kid OS 2.0 | Org-Twin</title>
+<title>GovTwin OS | Thai Public Organization Simulator</title>
 <style>
 :root {
   --bg:#0b1221;
@@ -42,6 +42,11 @@ input,select,textarea{
 }
 input[type=range]{padding:0;accent-color:var(--accent)}
 textarea{min-height:105px;resize:vertical}
+#learning .feedback-layout{grid-template-columns:1.2fr .8fr;align-items:stretch}
+#learning .feedback-layout .card{padding:24px}
+#learning .feedback-layout label{font-size:15px}
+#learning #feedbackText{min-height:260px;font-size:16px;line-height:1.65}
+@media(max-width:960px){#learning .feedback-layout{grid-template-columns:1fr}}
 label{display:block;margin:12px 0 5px;color:var(--muted)}
 h1,h2,h3,p{margin-top:0}
 h1{font-size:27px;line-height:1.45}
@@ -183,15 +188,15 @@ dialog::backdrop{background:#0009}
 <body>
 <div class="shell">
 <aside class="sidebar">
-  <div class="brand">◈ ORG-TWIN</div>
-  <div class="brand-sub">YOUNG-MAI-DAI-KID OS 2.0</div>
+  <div class="brand">◈ GOVTWIN OS</div>
+  <div class="brand-sub">YANG-MAI–DAI-KID</div>
 
   <nav aria-label="เมนูหลัก">
-    <button class="active" data-page="overview">◉ ศูนย์บัญชาการ</button>
-    <button data-page="organization">▧ โครงสร้าง & Org City</button>
-    <button data-page="simulation">◇ ห้องจำลององค์การ</button>
-    <button data-page="ai">✦ AI Scenario Builder</button>
-    <button data-page="operations">⇄ จตุเทพ Action Center</button>
+    <button class="active" data-page="overview">◉ Dashboard</button>
+    <button data-page="organization">▧ Organizational Model</button>
+    <button data-page="simulation">◇ Simulation</button>
+    <button data-page="ai">✦ Scenario Builder</button>
+    <button data-page="operations">⇄ Action Center</button>
     <button data-page="learning">↺ Feedback & Audit</button>
   </nav>
 
@@ -209,7 +214,7 @@ dialog::backdrop{background:#0009}
 <main>
 <header class="topbar">
   <div>
-    <b>Organizational Digital Twin</b><br>
+    <b>GovTwin OS · Public Organization Simulator</b><br>
     <small id="clock"></small>
   </div>
   <div>
@@ -305,7 +310,7 @@ dialog::backdrop{background:#0009}
 
 <!-- ORGANIZATION -->
 <section id="organization" class="view">
-  <h1>Organizational Data & Relationship Graph</h1>
+  <h1>Organizational Model</h1>
   <p class="muted">
     แยกสายรายงานออกจากการประสานงาน และเชื่อมกับทักษะและภารกิจ
   </p>
@@ -351,10 +356,22 @@ dialog::backdrop{background:#0009}
 
 <!-- SIMULATION -->
 <section id="simulation" class="view">
-  <h1>ห้องจำลององค์การ</h1>
+  <h1>Simulation</h1>
   <p class="muted">
     จำลองระดับกลุ่มหน่วยงาน 12 รอบเวลา × 8 การรันซ้ำต่อแผน
   </p>
+  <div class="card gap" style="border-color:var(--accent);background:linear-gradient(115deg,#142b41,#17243a)">
+    <div class="split-title">
+      <div>
+        <span class="badge yellow">กรณีศึกษาอ้างอิงเหตุการณ์จริง · เชียงราย 2567</span>
+        <h2 class="gap">น้ำท่วมเชียงราย: เตือนภัย–จัดกำลัง–สำรวจและช่วยเหลือ</h2>
+        <p class="muted">รายงาน ปภ. ระบุฝนต่อเนื่องและน้ำท่วมในแม่สายช่วง 9–10 ก.ย. 2567 พร้อมสั่งเฝ้าระวัง เตรียมกำลัง/เครื่องมือ และเร่งสำรวจความเสียหาย</p>
+        <p class="muted">ใช้เหตุการณ์จริงเป็นบริบท ส่วนตัวเลขและผลจำลองด้านล่างเป็นสมมติฐานเพื่อสาธิต ไม่ใช่การจำลองผลย้อนหลังของเหตุการณ์จริง</p>
+        <a href="https://dpmreporter.disaster.go.th/portal/disaster-news/6728" target="_blank" rel="noopener noreferrer">อ่านรายงานสถานการณ์จากกรมป้องกันและบรรเทาสาธารณภัย ↗</a>
+      </div>
+      <button id="loadChiangRaiCase" class="primary">โหลดกรณีศึกษาใน Sandbox</button>
+    </div>
+  </div>
   <div class="card gap">
     <h2>แผนที่ภารกิจตัวอย่างในประเทศไทย</h2>
     <p class="muted">คลิกภูมิภาคเพื่อดูจังหวัดและโจทย์ตัวอย่าง แผนที่นี้เป็นภาพสรุปภูมิภาค ไม่ใช่แผนที่เขตการปกครองที่แม่นยำ ข้อมูลและภารกิจเป็นตัวอย่างสมมติ</p>
@@ -512,7 +529,7 @@ dialog::backdrop{background:#0009}
 
 <!-- AI -->
 <section id="ai" class="view">
-  <h1>AI Scenario Builder</h1>
+  <h1>Scenario Builder</h1>
   <div class="step"><b>ขั้นตอน:</b> พิมพ์โจทย์โดยไม่ใส่ข้อมูลส่วนบุคคล → กดสร้าง Scenario → ตรวจค่าที่ระบบอ่านได้ → ส่งเข้าไปปรับในห้องจำลองก่อนรัน</div>
   <div class="notice">
     AI จำลองแบบกฎ: อ่านคำสำคัญและเปอร์เซ็นต์
@@ -545,12 +562,8 @@ dialog::backdrop{background:#0009}
 
 <!-- OPERATIONS -->
 <section id="operations" class="view">
-  <h1>จตุเทพ · Action Center</h1>
-  <p class="muted">
-    เปลี่ยนข้อเสนอจากผลจำลองเป็นแผนทดลอง
-    โดยไม่มีผลมอบหมายงานหรืออนุมัติทางกฎหมายจริง
-  </p>
-  <div class="step"><b>ขั้นตอน Action Center:</b> เลือกหน่วยงานต้นทาง/ปลายทางและทักษะ → ดูรหัสบุคลากรตัวอย่าง → ร่างแผน/ตัวชี้วัด → บันทึกเฉพาะข้อมูลจำลองในเบราว์เซอร์</div>
+  <h1>Action Center</h1>
+  <div class="step"><b>Workflow:</b> จับคู่ทักษะกับภารกิจ → เก็บประสบการณ์ใน Skill Wallet → ร่างแผนทดลองจากผลจำลอง → ทบทวนกำลังคนภาพรวม</div>
 
   <div id="actionContext" class="notice">
     ยังไม่มีผลจำลอง เลือกสถานการณ์และรันก่อนเพื่อเชื่อมแผนกับ Action Center
@@ -559,7 +572,7 @@ dialog::backdrop{background:#0009}
   <div class="grid two">
     <div class="card">
       <h2>① Gov-Gig Marketplace</h2>
-      <p class="muted">ขั้นนี้ใช้ดูตัวอย่างบุคลากรสมมติที่มีทักษะตรง ไม่ได้ทำรายการโอนย้ายจริง</p>
+      <p class="muted">จับคู่ทักษะกับภารกิจข้ามหน่วยงาน และแสดงตัวอย่างผู้สมัครที่ตรงกับความต้องการ</p>
       <label for="sourceDepartment">หน่วยงานต้นทาง</label><select id="sourceDepartment"></select>
       <label for="targetDepartment">หน่วยงาน/ภารกิจปลายทาง</label><select id="targetDepartment"></select>
       <label for="gigSkill">ทักษะที่ภารกิจต้องใช้</label>
@@ -577,16 +590,13 @@ dialog::backdrop{background:#0009}
       <div id="candidateList" class="gap"></div>
       <p class="muted gap">
         รหัสแสดงเป็นอักษรอังกฤษ + ตัวเลข 4 หลัก + อักษรตรวจท้าย
-        ใช้สาธิตการระบุบุคลากร ไม่ใช่รหัสหรือข้อมูลจริง และไม่ทำการโอนย้ายจริง
+        รหัสบุคลากรทั้งหมดเป็นข้อมูลสังเคราะห์สำหรับการสาธิต
       </p>
     </div>
 
     <div class="card">
       <h2>② Skill Wallet & Career Passport</h2>
-      <p class="muted">
-        เก็บประสบการณ์จากภารกิจทดลอง
-        ไม่ใช่หลักฐานการปฏิบัติงานจริงหรือ VC ที่ลงนาม
-      </p>
+      <p class="muted">บันทึกทักษะและประสบการณ์ที่ได้จากภารกิจทดลองไว้ใน Skill Wallet</p>
       <div id="walletList"></div>
     </div>
   </div>
@@ -594,7 +604,7 @@ dialog::backdrop{background:#0009}
   <div class="grid two gap">
     <form id="sandboxForm" class="card">
       <h2>③ Policy Sandbox</h2>
-      <p class="muted">ร่างแผนทดลองโดยกำหนดตัวชี้วัดและเงื่อนไขหยุด ก่อนนำไปพิจารณากับผู้เกี่ยวข้อง</p>
+      <p class="muted">แปลงผลจับคู่และผลจำลองจากขั้นตอนก่อนหน้าเป็นร่างแผนทดลอง พร้อมตัวชี้วัดและเงื่อนไขทบทวน</p>
 
       <label for="trialName">ชื่อแผนทดลอง</label>
       <input id="trialName" maxlength="160" required>
@@ -642,10 +652,7 @@ dialog::backdrop{background:#0009}
       <button id="projectButton" class="primary gap">ฉายภาพ 3 ปี</button>
       <canvas id="workforceChart" width="760" height="300" class="gap"></canvas>
       <div id="projectionText" class="gap"></div>
-      <small>
-        ใช้อัตราคงที่จากฐาน 10,000 คน
-        ไม่ใช่ Prophet หรือการทำนายการลาออกรายบุคคล
-      </small>
+      <small>ฉายภาพระดับภาพรวมจากสมมติฐานอัตราเข้า–ออกคงที่</small>
     </div>
   </div>
 
@@ -657,14 +664,13 @@ dialog::backdrop{background:#0009}
 
 <!-- FEEDBACK -->
 <section id="learning" class="view">
-  <h1>Feedback, Calibration & Audit</h1>
-  <div class="step"><b>ขั้นตอน:</b> บันทึกสิ่งที่สังเกต → เสนอค่าที่ควรทบทวน → ผู้ใช้ยืนยันก่อนใช้ในรอบถัดไป → ตรวจประวัติและดาวน์โหลดข้อมูลสำรองได้</div>
+  <h1>Feedback & Audit</h1>
 
-  <div class="grid two">
+  <div class="grid two feedback-layout">
     <form id="feedbackForm" class="card">
       <h2>บันทึกผลสังเกต</h2>
       <label for="feedbackText">ผลที่พบ / ข้อจำกัด / บทเรียน</label>
-      <textarea id="feedbackText" maxlength="1500" required></textarea>
+      <textarea id="feedbackText" maxlength="1500" required placeholder="สิ่งที่พบ:\nผลต่อภารกิจหรือผู้รับบริการ:\nจุดที่ติดขัด:\nข้อเสนอปรับปรุง:"></textarea>
 
       <label for="proposedFriction">
         เสนอค่าความล่าช้าการประสานงาน (%)
@@ -679,10 +685,6 @@ dialog::backdrop{background:#0009}
         </button>
       </div>
 
-      <p class="muted gap">
-        ไม่ปรับโมเดลอัตโนมัติ และไม่แก้ผลจำลองเก่าย้อนหลัง
-        การกดใช้พารามิเตอร์เป็นการยืนยันในต้นแบบเท่านั้น
-      </p>
     </form>
 
     <div class="card">
@@ -697,10 +699,6 @@ dialog::backdrop{background:#0009}
       <button id="downloadWorkspace">สำรอง Workspace JSON</button>
     </div>
     <div id="auditList"></div>
-    <p class="muted gap">
-      Local Storage แก้ไขหรือลบได้ ไม่ใช่ Immutable Log
-      และไม่มีระบบยืนยันตัวตน
-    </p>
     <button id="clearWorkspace" class="danger">ล้างข้อมูลต้นแบบทั้งหมด</button>
   </div>
 </section>
@@ -850,11 +848,12 @@ const presets = [
   },
   {
     id:"flood",
-    name:"อุทกภัย: ประสานทีมพื้นที่และศูนย์ช่วยเหลือ",
-    description:"ทดสอบการรับแจ้งเหตุ สำรวจความเสียหาย และส่งความช่วยเหลือข้ามหน่วย",
+    name:"กรณีศึกษา: น้ำท่วมเชียงราย (2567)",
+    description:"บริบทจากเหตุฝนตกหนักและน้ำท่วมในแม่สาย ช่วง 9–10 ก.ย. 2567 เพื่อทดลองวางกำลังเฝ้าระวัง สำรวจความเสียหาย และช่วยเหลือประชาชน โดยค่าจำลองเป็นสมมติฐาน",
     pressure:"ภัยพิบัติ · งานพุ่งฉับพลัน",
     workGrowth:55,staffCut:15,digitalGain:15,friction:28,
-    structure:"keep",stress:"surge",external:"disaster"
+    structure:"keep",stress:"surge",external:"disaster",caseStudy:true,
+    sourceUrl:"https://dpmreporter.disaster.go.th/portal/disaster-news/6728"
   },
   {
     id:"cyber",
@@ -916,7 +915,7 @@ const scenarioSpecs = [
 ];
 
 const scenarioCategoryByPreset={capacity:"กำลังคนและโครงสร้าง",structure:"กำลังคนและโครงสร้าง",chiangrai:"ภัยพิบัติและสิ่งแวดล้อม",flood:"ภัยพิบัติและสิ่งแวดล้อม",cyber:"ข้อมูลและธรรมาภิบาล"};
-presets.forEach(item=>{item.category=scenarioCategoryByPreset[item.id];item.stakeholders="กระทรวง/กรมเจ้าภาพ · จังหวัดและหน่วยงานคู่ประสาน · ประชาชนผู้รับบริการ"});
+presets.forEach(item=>{item.category=scenarioCategoryByPreset[item.id];item.stakeholders=item.id==="flood"?"จังหวัดเชียงราย · ปภ. · อำเภอ/ท้องถิ่น · หน่วยงานเฝ้าระวังน้ำ · สาธารณสุข":"กระทรวง/กรมเจ้าภาพ · จังหวัดและหน่วยงานคู่ประสาน · ประชาชนผู้รับบริการ"});
 const additionalScenarios=scenarioSpecs.map((spec,index)=>{
   const [name,category,regionName,agency,partners,mission,workGrowth,staffCut,digitalGain,friction,external,stress,structure="keep"]=spec;
   return {id:`thai-${String(index+6).padStart(2,"0")}`,name,category,regionName,pressure:category,description:`${mission} · เจ้าภาพ: ${agency}`,stakeholders:`${agency} · ${partners}`,workGrowth,staffCut,digitalGain,friction:Math.min(35,friction),external,stress,structure};
@@ -1246,6 +1245,12 @@ function loadScenario(scenario) {
   $("externalFactor").value=scenario.external||"none";
   updateLabels();
 }
+$("loadChiangRaiCase").onclick=()=>{
+  const scenario=presets.find(item=>item.id==="flood");
+  loadScenario(scenario);
+  $("caseName").focus();
+  toast("โหลดกรณีศึกษาเชียงรายแล้ว ตรวจและปรับสมมติฐานก่อนจำลองได้เลย");
+};
 $("resetScenario").onclick=()=>loadScenario(currentPreset);
 
 function readScenario() {
