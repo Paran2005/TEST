@@ -559,9 +559,12 @@ dialog::backdrop{background:#0009}
       <textarea id="aiPrompt" maxlength="1500"
         placeholder="เช่น จังหวัดเชียงรายต้องเพิ่มทีมติดตามคุณภาพน้ำ งานเพิ่ม 40% ขาดคน 10% ดิจิทัล 25% ประสานงาน 20%"></textarea>
 
+      <p class="muted">แม่แบบที่ระบบอ่านได้ดีที่สุด: งานเพิ่ม 30% · ขาดคน 10% · ดิจิทัล 15% · ประสานงาน 20% (ระบุเป็นข้อเท็จจริงสั้น ๆ ทีละค่า)</p>
+
       <div class="actions">
         <button id="generateAI" class="primary">✦ สร้าง Scenario</button>
         <button id="aiExample">ใส่ตัวอย่างเชียงราย</button>
+        <button id="aiTemplateBasic">ใส่แม่แบบพื้นฐาน</button>
       </div>
     </div>
 
@@ -584,6 +587,8 @@ dialog::backdrop{background:#0009}
     ยังไม่มีผลจำลอง เลือกสถานการณ์และรันก่อนเพื่อเชื่อมแผนกับ Action Center
   </div>
 
+  <div class="notice"><b>ข้อมูลเพื่อสาธิต:</b> การจับคู่ รหัสบุคลากร และผลคาดการณ์เป็นข้อมูลสังเคราะห์ระดับกลุ่ม ไม่ใช่การประเมินรายบุคคลหรือคำสั่งย้ายงานจริง</div>
+
   <div class="grid two">
     <div class="card">
       <h2>① Gov-Gig Marketplace</h2>
@@ -602,6 +607,7 @@ dialog::backdrop{background:#0009}
         <button id="confirmGig" class="primary">บันทึกภารกิจทดลอง</button>
       </div>
 
+      <div class="notice gap"><b>ข้อมูลสังเคราะห์เท่านั้น:</b> รายชื่อ รหัส และความพร้อมเป็นตัวอย่างระดับกลุ่ม ใช้ดูการจับคู่ทักษะ ไม่ใช่การประเมินหรือคำสั่งย้ายบุคคล</div>
       <div id="candidateList" class="gap"></div>
       <p class="muted gap">
         รหัสแสดงเป็นอักษรอังกฤษ + ตัวเลข 4 หลัก + อักษรตรวจท้าย
@@ -612,6 +618,7 @@ dialog::backdrop{background:#0009}
     <div class="card">
       <h2>② Skill Wallet & Career Passport</h2>
       <p class="muted">บันทึกทักษะและประสบการณ์ที่ได้จากภารกิจทดลองไว้ใน Skill Wallet</p>
+      <div class="notice gap"><b>ข้อมูลสังเคราะห์เท่านั้น:</b> ประสบการณ์และรหัสใน Wallet ไม่ใช่การรับรองหรือคะแนนสมรรถนะรายบุคคล</div>
       <div id="walletList"></div>
     </div>
   </div>
@@ -656,6 +663,7 @@ dialog::backdrop{background:#0009}
 
     <div class="card">
       <h2>④ Workforce Digital Twin</h2>
+      <div class="notice"><b>ภาพรวมระดับกลุ่ม:</b> ตัวเลข Workforce Twin มาจากสมมติฐานรวม ไม่จัดอันดับหรือพยากรณ์บุคลากรรายบุคคล</div>
       <label for="annualExit">อัตราออกจากระบบรวมต่อปี (%)</label>
       <input id="annualExit" type="number" min="0" max="30"
         step="0.1" value="3">
@@ -1394,7 +1402,7 @@ function simulate(config,plan,seed) {
     const inclusionFactor=config.external==="inclusion"&&effectiveDigital>0?.65:1;
 
     let periodIn=0,periodDone=0,periodCap=0;
-    let weightedBurden=0,highLoadDemand=0;
+    let weightedBurden=0,highLoadDemand=0,periodPeakLoad=0;
 
     groups.forEach(group=>{
       if(group.demand===0)return;
@@ -1412,6 +1420,7 @@ function simulate(config,plan,seed) {
       group.backlog=Math.max(0,group.backlog+arrival-done);
 
       const burden=arrival/Math.max(1,capacity);
+      periodPeakLoad=Math.max(periodPeakLoad,burden*100);
       weightedBurden+=burden*arrival;
       if(burden>1.2)highLoadDemand+=arrival;
 
@@ -1426,7 +1435,8 @@ function simulate(config,plan,seed) {
     timeline.push({
       tick:tick+1,
       backlog:Math.round(pending),
-      completion:periodDone/Math.max(1,periodIn)*100
+      completion:periodDone/Math.max(1,periodIn)*100,
+      peakLoad:periodPeakLoad
     });
   }
 
@@ -1505,6 +1515,7 @@ async function runSimulation() {
 
       const metrics={};
       metricKeys.forEach(key=>metrics[key]=summary(rows,key));
+      metrics.peakLoad=summary(rows.map(row=>({peakLoad:Math.max(...row.timeline.map(point=>point.peakLoad))})),"peakLoad");
       plans.push({plan,metrics,rows});
     }
 
@@ -1564,6 +1575,7 @@ function renderResults() {
             <p class="gap">
               งานค้าง: <b>${fmt(plan.metrics.backlog.mean)}</b> หน่วย<br>
               ภาระงานเฉลี่ย: <b>${fmt(plan.metrics.load.mean)}%</b><br>
+              ภาระงานสูงสุด: <b>${fmt(plan.metrics.peakLoad.mean)}%</b><br>
               รอจากงานค้าง: <b>${fmt(plan.metrics.delay.mean)}</b> รอบ<br>
               ดัชนีต้นทุน: <b>${fmt(plan.metrics.costIndex.mean)}</b>
             </p>
@@ -1582,11 +1594,15 @@ function renderResults() {
           <canvas id="backlogChart" width="760" height="300"></canvas>
         </div>
       </div>
+      <div class="gap">
+        <h3>ภาระงานสูงสุดรายรอบ · ค่าเฉลี่ยจาก 8 การรัน</h3>
+        <canvas id="peakLoadChart" width="1000" height="320"></canvas>
+      </div>
 
       <div class="table-wrap gap">
         <table>
           <thead><tr>
-            <th>แผน</th><th>งานเสร็จ %</th><th>ภาระงาน %</th>
+            <th>แผน</th><th>งานเสร็จ %</th><th>ภาระงานเฉลี่ย %</th><th>ภาระงานสูงสุด %</th>
             <th>เวลารอ / รอบ</th><th>งานค้าง</th>
           </tr></thead>
           <tbody>
@@ -1595,6 +1611,7 @@ function renderResults() {
                 <td>${esc(plan.plan.name)}</td>
                 <td>${range(plan.metrics.completion)}</td>
                 <td>${range(plan.metrics.load)}</td>
+                <td>${range(plan.metrics.peakLoad)}</td>
                 <td>${range(plan.metrics.delay)}</td>
                 <td>${range(plan.metrics.backlog)}</td>
               </tr>
@@ -1635,6 +1652,7 @@ function renderResults() {
 
       <div class="actions">
         <button id="exportRun">ดาวน์โหลดผล JSON</button>
+        <button id="exportSummary">ดาวน์โหลดสรุปผลและแผนทดลอง</button>
         <button id="printRun">พิมพ์หน้าผลจำลอง</button>
       </div>
     </div>
@@ -1654,7 +1672,14 @@ function renderResults() {
     };
   });
 
-  $("exportRun").onclick=()=>downloadJSON(lastRun,"org-twin-run.json");
+  $("exportRun").onclick=()=>downloadJSON({
+    format:"GovTwin OS simulation export",
+    exportedAt:new Date().toISOString(),
+    run:lastRun,
+    relatedTrialDrafts:workspace.trials.filter(trial=>trial.runId===lastRun.id),
+    caveat:"Synthetic group-level demo results; not individual assessment or operational instruction"
+  },"org-twin-run.json");
+  $("exportSummary").onclick=()=>downloadText(buildRunReport(lastRun),"org-twin-summary.txt");
   $("printRun").onclick=()=>window.print();
 
   drawBars("comparisonChart",
@@ -1663,6 +1688,7 @@ function renderResults() {
     })),100,"% งานเสร็จ");
 
   drawBacklog();
+  drawPeakLoad();
 }
 
 function drawBars(id,data,max,title) {
@@ -1721,12 +1747,50 @@ function drawBacklog() {
   ctx.fillText("รอบ 12",right-45,bottom+27);
 }
 
+function drawPeakLoad() {
+  const canvas=$("peakLoadChart"),ctx=canvas.getContext("2d");
+  const colors=["#38bdf8","#34d399","#fbbf24","#a78bfa","#fb7185","#f97316"];
+  const lines=lastRun.plans.map(plan=>Array.from({length:12},(_,tick)=>
+    average(plan.rows.map(row=>row.timeline[tick].peakLoad))));
+  const max=Math.max(100,...lines.flat())*1.12;
+  const left=65,right=canvas.width-25,top=42,bottom=canvas.height-48;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let i=0;i<=4;i++){
+    const y=bottom-i*(bottom-top)/4;
+    ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);
+    ctx.strokeStyle="#253b54";ctx.stroke();
+    ctx.fillStyle="#9fb1ca";ctx.font="12px Tahoma";
+    ctx.fillText(fmt(max*i/4)+"%",6,y+4);
+  }
+  lines.forEach((line,index)=>{
+    ctx.beginPath();
+    line.forEach((value,tick)=>{
+      const x=left+tick*(right-left)/11;
+      const y=bottom-value/max*(bottom-top);
+      tick?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    });
+    ctx.strokeStyle=colors[index];ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle=colors[index];ctx.font="13px Tahoma";
+    ctx.fillText("แผน "+lastRun.plans[index].plan.id,left+index*145,24);
+  });
+  ctx.fillStyle="#9fb1ca";ctx.font="12px Tahoma";
+  for(let tick=0;tick<12;tick+=2){
+    const x=left+tick*(right-left)/11;
+    ctx.fillText("รอบ "+(tick+1),x-18,bottom+25);
+  }
+  ctx.fillText("รอบ 12",right-23,bottom+25);
+}
+
 /* -------------------- AI rule builder -------------------- */
 
 $("aiExample").onclick=()=>{
   $("aiPrompt").value=
     "จังหวัดเชียงรายต้องเพิ่มทีมติดตามคุณภาพน้ำ "+
     "งานเพิ่ม 40% ขาดคน 10% ดิจิทัล 25% ประสานงาน 20%";
+};
+
+$("aiTemplateBasic").onclick=()=>{
+  $("aiPrompt").value="ภารกิจบริการประชาชน งานเพิ่ม 30% ขาดคน 10% ดิจิทัล 15% ประสานงาน 20%";
 };
 
 function extractPercent(text,pattern,fallback,max) {
@@ -1742,7 +1806,10 @@ $("generateAI").onclick=()=>{
   if(text.length<10){toast("กรุณาระบุรายละเอียดอย่างน้อย 10 ตัวอักษร");return}
 
   const isWater=/เชียงราย|คุณภาพน้ำ|สารหนู|เก็บตัวอย่าง/.test(text);
-  const base=clone(isWater?presets:presets);
+  const isDisaster=/น้ำท่วม|อุทกภัย|ภัยพิบัติ/.test(text);
+  const base=clone(presets.find(item=>item.id===(isWater?"chiangrai":isDisaster?"flood":"capacity")));
+  const mergeDetected=/รวมทีม|รวมหน่วยงาน/.test(text);
+  const negationDetected=/(?:ไม่|ไม่ได้|ไม่มี|ยกเว้น|แทนที่จะ)/.test(text);
 
   const parsed={
     workGrowth:extractPercent(text,/(?:งานเพิ่ม|ภารกิจเพิ่ม)\s*(\d+)\s*%/,
@@ -1758,7 +1825,8 @@ $("generateAI").onclick=()=>{
   generatedScenario={
     ...base,
     name:"AI จำลอง: "+text.slice(0,120),
-    structure:/รวมทีม|รวมหน่วยงาน/.test(text)?"merge":base.structure
+    description:"Scenario ที่สร้างจาก rule-based keywords และค่าตัวเลขที่ตรวจพบ",
+    structure:mergeDetected?"merge":base.structure
   };
 
   Object.entries(parsed).forEach(([key,item])=>
@@ -1768,10 +1836,16 @@ $("generateAI").onclick=()=>{
     workGrowth:"งานเพิ่ม",staffCut:"กำลังคนไม่พร้อม",
     digitalGain:"ดิจิทัล",friction:"ความล่าช้าประสานงาน"
   };
+  const detectedKeywords=[];
+  if(isWater)detectedKeywords.push("เชียงราย/คุณภาพน้ำ → แม่แบบภารกิจพื้นที่");
+  if(isDisaster)detectedKeywords.push("น้ำท่วม/ภัยพิบัติ → แม่แบบรับมือเหตุฉุกเฉิน");
+  if(mergeDetected)detectedKeywords.push("รวมทีม/รวมหน่วยงาน → รวมโครงสร้าง");
+  if(!detectedKeywords.length)detectedKeywords.push("ไม่พบคำเปลี่ยนโครงสร้างหรือภารกิจเฉพาะ → ใช้แม่แบบกำลังคน");
 
   $("aiOutput").className="";
   $("aiOutput").innerHTML=`
     <p>${esc(text)}</p>
+    <p><b>คำที่ระบบจับได้</b><br>${detectedKeywords.map(esc).join("<br>")}</p>
     <ul>
       ${Object.entries(parsed).map(([key,item])=>`
         <li>${labels[key]}: <b>${item.value}%</b>
@@ -1783,6 +1857,7 @@ $("generateAI").onclick=()=>{
       โครงสร้าง: ${generatedScenario.structure==="merge"?"รวมทีม":"คงเดิม"}<br>
       ไม่ได้สร้างตัวเลขผลกระทบ ผลต้องคำนวณใน Simulation Engine
     </p>
+    ${negationDetected?'<div class="notice"><b>ตรวจทาน:</b> พบคำปฏิเสธ/ยกเว้น ระบบอาจอ่านความหมายกลับด้าน โปรดแก้เป็นประโยคบอกเล่าและตรวจค่าด้านบนก่อนส่งเข้าห้องจำลอง</div>':'<div class="notice">ตรวจค่าที่ระบบจับได้เทียบกับโจทย์ก่อนส่งเข้าห้องจำลอง</div>'}
   `;
   $("applyAI").hidden=false;
 };
@@ -1930,6 +2005,44 @@ function downloadJSON(data,filename) {
   link.href=url;link.download=filename;
   document.body.appendChild(link);link.click();link.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function downloadText(content,filename) {
+  const blob=new Blob([content],{type:"text/plain;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;link.download=filename;
+  document.body.appendChild(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function buildRunReport(run) {
+  const trials=workspace.trials.filter(trial=>trial.runId===run.id);
+  const lines=[
+    "GovTwin OS · สรุปผลการจำลอง",
+    "สถานการณ์: "+run.config.name,
+    "วันที่: "+new Date(run.at).toLocaleString("th-TH"),
+    "Random seed: "+run.config.seed,
+    "หมายเหตุ: ผลเป็นข้อมูลสังเคราะห์ระดับกลุ่ม ไม่ใช่การประเมินรายบุคคลหรือคำสั่งปฏิบัติงาน",
+    "",
+    "สมมติฐาน: งานเพิ่ม "+run.config.workGrowth+"% · กำลังคนไม่พร้อม "+run.config.staffCut+"% · ดิจิทัล "+run.config.digitalGain+"% · ประสานงาน "+run.config.friction+"%",
+    "",
+    "ผลเปรียบเทียบ (ค่าเฉลี่ยจาก 8 การรัน):"
+  ];
+  run.plans.forEach(item=>lines.push(
+    "- "+item.plan.name+": งานเสร็จ "+fmt(item.metrics.completion.mean)+"% · ภาระงานเฉลี่ย "+fmt(item.metrics.load.mean)+"% · ภาระงานสูงสุด "+fmt(item.metrics.peakLoad.mean)+"% · เวลารอ "+fmt(item.metrics.delay.mean)+" รอบ · งานค้าง "+fmt(item.metrics.backlog.mean)
+  ));
+  lines.push("","ภาระงานสูงสุดรายรอบ (%):");
+  run.plans.forEach(item=>lines.push(
+    "- แผน "+item.plan.id+": "+Array.from({length:12},(_,tick)=>fmt(average(item.rows.map(row=>row.timeline[tick].peakLoad)))).join(", ")
+  ));
+  lines.push("","ร่างแผนทดลองที่เชื่อมกับผลนี้:");
+  if(trials.length)trials.forEach(trial=>lines.push(
+    "- "+trial.name+" (แผน "+trial.plan+") · KPI: "+trial.kpi+" · เงื่อนไขหยุด: "+trial.stop
+  ));
+  else lines.push("- ยังไม่มีร่างแผนทดลองที่เชื่อมกับผลการรันนี้");
+  lines.push("","ข้อจำกัด: หน่วยงาน บุคลากร และผลคำนวณเป็นข้อมูลสมมติ ไม่ใช่ผลพยากรณ์ที่สอบเทียบกับองค์การจริง");
+  return lines.join("\n");
 }
 
 $("downloadWorkspace").onclick=()=>downloadJSON({
