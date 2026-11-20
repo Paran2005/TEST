@@ -130,6 +130,10 @@ th{color:var(--muted);font-size:12px;font-weight:normal}
   padding:20px;border:1px dashed var(--line);
   color:var(--muted);border-radius:11px;
 }
+.verification-preview{border:1px solid var(--accent);background:#0d1c2e;border-radius:12px;padding:14px;margin-top:12px}
+.verification-preview input,.verification-preview select{min-width:90px;width:100%;padding:8px}
+.snapshot-card{border:1px solid var(--line);border-radius:10px;padding:12px;margin:9px 0;background:#0d192b}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .scenario{display:flex;flex-direction:column}
 .scenario button{margin-top:auto}
 .category-choice{text-align:left;min-height:92px;display:flex;flex-direction:column;justify-content:space-between;gap:12px}
@@ -566,6 +570,12 @@ dialog::backdrop{background:#0009}
         <button id="aiExample">ใส่ตัวอย่างเชียงราย</button>
         <button id="aiTemplateBasic">ใส่แม่แบบพื้นฐาน</button>
       </div>
+      <div class="actions gap">
+        <button id="exportScenarioPack">ส่งออกชุดสถานการณ์ + Snapshot (.json)</button>
+        <button id="importScenarioPack">นำเข้าไฟล์ชุดสถานการณ์ (.json)</button>
+        <input id="scenarioPackFile" type="file" accept=".json,application/json" hidden>
+      </div>
+      <p class="muted">ไฟล์จะรวมสถานการณ์ตั้งต้น/ที่ทีมสร้างและ Snapshot ผลเปรียบเทียบที่บันทึกไว้ ไม่รวมข้อมูลบุคลากรรายบุคคล</p>
     </div>
 
     <div class="card">
@@ -949,7 +959,7 @@ const scenarioCatalog=[...presets,...additionalScenarios];
 
 const STORAGE_KEY = "org-twin-os-v3";
 let workspace = {
-  history:[],trials:[],missions:[],feedback:[],audit:[],scenarios:[],planTemplates:[]
+  history:[],trials:[],missions:[],feedback:[],audit:[],scenarios:[],planTemplates:[],comparisonSnapshots:[]
 };
 
 try {
@@ -1653,8 +1663,10 @@ function renderResults() {
       <div class="actions">
         <button id="exportRun">ดาวน์โหลดผล JSON</button>
         <button id="exportSummary">ดาวน์โหลดสรุปผลและแผนทดลอง</button>
+        <button id="saveComparisonSnapshot">บันทึก Snapshot เปรียบเทียบสถานการณ์นี้</button>
         <button id="printRun">พิมพ์หน้าผลจำลอง</button>
       </div>
+      <div id="comparisonSnapshotsPanel" class="gap"></div>
     </div>
   `;
 
@@ -1677,10 +1689,19 @@ function renderResults() {
     exportedAt:new Date().toISOString(),
     run:lastRun,
     relatedTrialDrafts:workspace.trials.filter(trial=>trial.runId===lastRun.id),
+    comparisonSnapshot:createComparisonSnapshot(lastRun),
     caveat:"Synthetic group-level demo results; not individual assessment or operational instruction"
   },"org-twin-run.json");
   $("exportSummary").onclick=()=>downloadText(buildRunReport(lastRun),"org-twin-summary.txt");
   $("printRun").onclick=()=>window.print();
+  $("saveComparisonSnapshot").onclick=()=>{
+    const snapshot=createComparisonSnapshot(lastRun);
+    const duplicate=(workspace.comparisonSnapshots||[]).some(item=>item.runId===snapshot.runId);
+    if(duplicate){toast("มี Snapshot ของผลจำลองนี้แล้ว");return}
+    workspace.comparisonSnapshots.unshift(snapshot);
+    workspace.comparisonSnapshots=workspace.comparisonSnapshots.slice(0,20);
+    persist();renderComparisonSnapshots();toast("บันทึก Snapshot แล้ว เปรียบเทียบกับสถานการณ์อื่นได้ในหน้านี้");
+  };
 
   drawBars("comparisonChart",
     lastRun.plans.map(plan=>({
@@ -1689,6 +1710,33 @@ function renderResults() {
 
   drawBacklog();
   drawPeakLoad();
+  renderComparisonSnapshots();
+}
+
+function createComparisonSnapshot(run) {
+  return {
+    id:uid(),runId:run.id,name:run.config.name,at:run.at,
+    assumptions:{workGrowth:run.config.workGrowth,staffCut:run.config.staffCut,digitalGain:run.config.digitalGain,friction:run.config.friction,structure:run.config.structure,stress:run.config.stress,external:run.config.external,seed:run.config.seed},
+    plans:run.plans.map(item=>({id:item.plan.id,name:item.plan.name,completion:item.metrics.completion.mean,load:item.metrics.load.mean,peakLoad:item.metrics.peakLoad.mean,delay:item.metrics.delay.mean,backlog:item.metrics.backlog.mean})),
+    disclaimer:"Synthetic aggregate comparison only; not individual assessment or operational instruction"
+  };
+}
+
+function renderComparisonSnapshots() {
+  const host=$("comparisonSnapshotsPanel");
+  if(!host)return;
+  const snapshots=workspace.comparisonSnapshots||[];
+  host.innerHTML=`<h3>Scenario Comparison Snapshot · เปรียบเทียบข้ามสถานการณ์</h3>
+    <p class="muted">บันทึกผลจากหลายสถานการณ์แล้วเทียบความสามารถส่งมอบงาน ภาระงานสูงสุด และเวลารอในหน้าจอเดียว</p>
+    ${snapshots.length?`<div class="table-wrap"><table><thead><tr><th>สถานการณ์ / สมมติฐาน</th><th>แผนและผลสรุป</th><th>บันทึกเมื่อ</th><th></th></tr></thead><tbody>
+      ${snapshots.map(item=>`<tr><td><b>${esc(item.name)}</b><br><small>งาน +${fmt(item.assumptions.workGrowth)}% · คนไม่พร้อม ${fmt(item.assumptions.staffCut)}% · ดิจิทัล +${fmt(item.assumptions.digitalGain)}% · ประสาน ${fmt(item.assumptions.friction)}%</small></td>
+      <td>${item.plans.map(plan=>`<div class="snapshot-card"><b>${esc(plan.id)} · ${esc(plan.name)}</b><br><small>งานเสร็จ ${fmt(plan.completion)}% · ภาระสูงสุด ${fmt(plan.peakLoad)}% · รอ ${fmt(plan.delay)} รอบ · ค้าง ${fmt(plan.backlog)}</small></div>`).join("")}</td>
+      <td>${esc(new Date(item.at).toLocaleString("th-TH"))}</td><td><button class="danger" data-delete-snapshot="${esc(item.id)}">ลบ</button></td></tr>`).join("")}
+    </tbody></table></div>`:`<div class="empty">ยังไม่มี Snapshot · รันสถานการณ์แล้วกด “บันทึก Snapshot เปรียบเทียบสถานการณ์นี้” เพื่อเริ่มเทียบข้ามเหตุการณ์</div>`}`;
+  host.querySelectorAll("[data-delete-snapshot]").forEach(button=>button.onclick=()=>{
+    workspace.comparisonSnapshots=workspace.comparisonSnapshots.filter(item=>item.id!==button.dataset.deleteSnapshot);
+    persist();renderComparisonSnapshots();
+  });
 }
 
 function drawBars(id,data,max,title) {
@@ -1793,6 +1841,91 @@ $("aiTemplateBasic").onclick=()=>{
   $("aiPrompt").value="ภารกิจบริการประชาชน งานเพิ่ม 30% ขาดคน 10% ดิจิทัล 15% ประสานงาน 20%";
 };
 
+$("exportScenarioPack").onclick=()=>downloadJSON({
+  format:"GovTwin OS scenario and comparison pack",
+  schemaVersion:1,
+  exportedAt:new Date().toISOString(),
+  scenarios:generatedScenario?[...allScenarios(),generatedScenario]:allScenarios(),
+  comparisonSnapshots:workspace.comparisonSnapshots||[],
+  disclaimer:"Synthetic planning scenarios and aggregate demo snapshots only; no individual personnel data"
+},"govtwin-scenarios-and-snapshots.json");
+
+$("importScenarioPack").onclick=()=>$("scenarioPackFile").click();
+$("scenarioPackFile").onchange=async event=>{
+  const file=event.target.files?.[0];
+  if(!file)return;
+  try {
+    if(file.size>5*1024*1024)throw new Error("ไฟล์ใหญ่เกิน 5 MB");
+    const imported=JSON.parse(await file.text());
+    const scenarioItems=Array.isArray(imported)?imported:imported.scenarios;
+    if(!Array.isArray(scenarioItems))throw new Error("ไม่พบรายการ scenarios ในไฟล์ JSON");
+    let addedScenarios=0,addedSnapshots=0;
+    const builtInIds=new Set(scenarioCatalog.map(item=>item.id));
+    const signature=item=>[item.name,item.workGrowth,item.staffCut,item.digitalGain,item.friction,item.structure,item.stress,item.external].join("|");
+    const existingKeys=new Set(workspace.scenarios.map(signature));
+    const normalScenarios=scenarioItems.slice(0,500).map((item,index)=>normalizeImportedScenario(item,index)).filter(Boolean);
+    normalScenarios.forEach(item=>{
+      if(builtInIds.has(item.id)||existingKeys.has(signature(item)))return;
+      item.id="imported-"+uid();
+      workspace.scenarios.unshift(item);existingKeys.add(signature(item));addedScenarios++;
+    });
+    let snapshots=Array.isArray(imported.comparisonSnapshots)?imported.comparisonSnapshots:[];
+    if(imported.comparisonSnapshot)snapshots=[...snapshots,imported.comparisonSnapshot];
+    const sourceRun=imported.run||imported.lastRun;
+    if(sourceRun)snapshots.push(snapshotFromRun(sourceRun));
+    if(imported.workspace&&Array.isArray(imported.workspace.comparisonSnapshots))snapshots.push(...imported.workspace.comparisonSnapshots);
+    const existingSnapshotIds=new Set((workspace.comparisonSnapshots||[]).map(item=>item.sourceRunId||item.runId||item.id));
+    snapshots.slice(0,100).map(normalizeImportedSnapshot).filter(Boolean).forEach(item=>{
+      if(existingSnapshotIds.has(item.runId||item.id))return;
+      item.sourceRunId=item.runId;item.id="imported-"+uid();item.runId="imported-"+uid();
+      workspace.comparisonSnapshots.unshift(item);existingSnapshotIds.add(item.sourceRunId);addedSnapshots++;
+    });
+    workspace.comparisonSnapshots=workspace.comparisonSnapshots.slice(0,20);
+    persist();renderScenarios();renderWorkspace();
+    toast(`นำเข้าแล้ว · ${addedScenarios} สถานการณ์ · ${addedSnapshots} Snapshot`);
+  } catch(error) {
+    toast("นำเข้าไม่สำเร็จ: "+error.message);
+  } finally {event.target.value="";}
+};
+
+function normalizeImportedScenario(item,index) {
+  if(!item||typeof item!=="object")return null;
+  const name=String(item.name||"").trim().slice(0,120);
+  if(!name)return null;
+  const allowedExternal=["none","budget","disaster","cyber","inclusion"];
+  const allowedStress=["none","surge","absence"];
+  const percent=key=>clamp(Math.trunc(Number(item[key])||0),0,100);
+  return {
+    ...item,id:String(item.id||`scenario-${index}`).slice(0,100),name,
+    description:String(item.description||"สถานการณ์นำเข้าจากไฟล์ JSON").slice(0,500),
+    pressure:String(item.pressure||"สถานการณ์นำเข้า").slice(0,80),
+    category:String(item.category||"ทีมกำหนด").slice(0,80),regionName:String(item.regionName||"ส่วนกลาง").slice(0,80),
+    stakeholders:String(item.stakeholders||"หน่วยงานเจ้าภาพ · หน่วยงานคู่ประสาน · ประชาชน").slice(0,300),
+    workGrowth:percent("workGrowth"),staffCut:percent("staffCut"),digitalGain:percent("digitalGain"),friction:percent("friction"),
+    structure:item.structure==="merge"?"merge":"keep",stress:allowedStress.includes(item.stress)?item.stress:"none",external:allowedExternal.includes(item.external)?item.external:"none",custom:true
+  };
+}
+
+function snapshotFromRun(run) {
+  if(!run||!Array.isArray(run.plans))return null;
+  const mean=(plan,key)=>Number(plan?.[key]??plan?.metrics?.[key]?.mean);
+  return {
+    id:String(run.id||uid()),runId:String(run.id||uid()),name:String(run.config?.name||"ผลจำลองที่นำเข้า"),at:run.at||new Date().toISOString(),
+    assumptions:{workGrowth:Number(run.config?.workGrowth)||0,staffCut:Number(run.config?.staffCut)||0,digitalGain:Number(run.config?.digitalGain)||0,friction:Number(run.config?.friction)||0,structure:run.config?.structure||"keep",stress:run.config?.stress||"none",external:run.config?.external||"none"},
+    plans:run.plans.map(item=>({id:String(item.plan?.id||"?"),name:String(item.plan?.name||item.name||"แผน"),completion:mean(item,"completion"),load:mean(item,"load"),peakLoad:mean(item,"peakLoad"),delay:mean(item,"delay"),backlog:mean(item,"backlog")})),
+    disclaimer:"Imported synthetic aggregate comparison only"
+  };
+}
+
+function normalizeImportedSnapshot(item) {
+  if(!item||typeof item!=="object"||!Array.isArray(item.plans))return null;
+  const plans=item.plans.map(plan=>({id:String(plan.id||"?"),name:String(plan.name||"แผน").slice(0,100),completion:Number(plan.completion),load:Number(plan.load),peakLoad:Number(plan.peakLoad),delay:Number(plan.delay),backlog:Number(plan.backlog)}));
+  if(!plans.length||plans.some(plan=>Object.values(plan).slice(2).some(value=>!Number.isFinite(value))))return null;
+  const assumptions=item.assumptions||{};
+  const percent=key=>clamp(Math.trunc(Number(assumptions[key])||0),0,100);
+  return {id:String(item.id||uid()),runId:String(item.runId||item.id||uid()),name:String(item.name||"Snapshot ที่นำเข้า").slice(0,120),at:item.at||new Date().toISOString(),assumptions:{workGrowth:percent("workGrowth"),staffCut:percent("staffCut"),digitalGain:percent("digitalGain"),friction:percent("friction")},plans,disclaimer:"Imported synthetic aggregate comparison only"};
+}
+
 function extractPercent(text,pattern,fallback,max) {
   const match=text.match(pattern);
   return {
@@ -1846,12 +1979,15 @@ $("generateAI").onclick=()=>{
   $("aiOutput").innerHTML=`
     <p>${esc(text)}</p>
     <p><b>คำที่ระบบจับได้</b><br>${detectedKeywords.map(esc).join("<br>")}</p>
-    <ul>
-      ${Object.entries(parsed).map(([key,item])=>`
-        <li>${labels[key]}: <b>${item.value}%</b>
-        <small>— ${item.detected?"อ่านจากข้อความและจำกัดช่วง":"ใช้ค่าตั้งต้น"}</small></li>
-      `).join("")}
-    </ul>
+    <div class="verification-preview">
+      <b>Verification Check · ตรวจและแก้ค่าก่อนส่ง</b>
+      <p class="muted">ค่าเริ่มต้นคือผลจากตัวแปลกฎ คุณแก้ตัวเลขได้โดยตรง ระบบจะใช้ค่าที่แสดงในช่องเมื่อส่งเข้า Simulation</p>
+      <div class="table-wrap"><table><thead><tr><th>ตัวแปร</th><th>ค่าที่ระบบอ่านได้</th><th>แหล่งค่า</th></tr></thead><tbody>
+        ${Object.entries(parsed).map(([key,item])=>`<tr><td>${labels[key]}</td><td><label class="sr-only" for="aiOverride-${key}">${labels[key]} (%)</label><input id="aiOverride-${key}" type="number" min="0" max="100" step="1" value="${item.value}" data-ai-override="${key}"></td><td>${item.detected?"จับจากข้อความ":"ค่าเริ่มต้นจากแม่แบบ"}</td></tr>`).join("")}
+      </tbody></table></div>
+      <label for="aiOverrideStructure">โครงสร้างที่ระบบเตรียมไว้</label>
+      <select id="aiOverrideStructure"><option value="keep" ${generatedScenario.structure==="keep"?"selected":""}>คงหน่วยงานเดิม</option><option value="merge" ${generatedScenario.structure==="merge"?"selected":""}>รวมทีมบริการและทีมพื้นที่</option></select>
+    </div>
     <p class="muted">
       แม่แบบ: ${esc(base.name)}<br>
       โครงสร้าง: ${generatedScenario.structure==="merge"?"รวมทีม":"คงเดิม"}<br>
@@ -1859,11 +1995,18 @@ $("generateAI").onclick=()=>{
     </p>
     ${negationDetected?'<div class="notice"><b>ตรวจทาน:</b> พบคำปฏิเสธ/ยกเว้น ระบบอาจอ่านความหมายกลับด้าน โปรดแก้เป็นประโยคบอกเล่าและตรวจค่าด้านบนก่อนส่งเข้าห้องจำลอง</div>':'<div class="notice">ตรวจค่าที่ระบบจับได้เทียบกับโจทย์ก่อนส่งเข้าห้องจำลอง</div>'}
   `;
+  $("aiOutput").querySelectorAll("[data-ai-override]").forEach(input=>input.oninput=()=>{
+    const value=clamp(Math.trunc(Number(input.value)||0),0,100);
+    input.value=value;generatedScenario[input.dataset.aiOverride]=value;
+  });
+  $("aiOverrideStructure").onchange=event=>generatedScenario.structure=event.target.value;
   $("applyAI").hidden=false;
 };
 
 $("applyAI").onclick=()=>{
   if(!generatedScenario)return;
+  $("aiOutput").querySelectorAll("[data-ai-override]").forEach(input=>generatedScenario[input.dataset.aiOverride]=clamp(Math.trunc(Number(input.value)||0),0,100));
+  generatedScenario.structure=$("aiOverrideStructure").value;
   loadScenario(generatedScenario);
   openPage("simulation");
 };
@@ -2054,7 +2197,7 @@ $("downloadWorkspace").onclick=()=>downloadJSON({
 
 $("clearWorkspace").onclick=()=>{
   if(!confirm("ล้างประวัติ แผนทดลอง Wallet และ Feedback ทั้งหมด?"))return;
-  workspace={history:[],trials:[],missions:[],feedback:[],audit:[]};
+  workspace={history:[],trials:[],missions:[],feedback:[],audit:[],scenarios:[],planTemplates:[],comparisonSnapshots:[]};
   lastRun=null;selectedCandidates=[];
   $("results").innerHTML="";
   $("candidateList").innerHTML="";
