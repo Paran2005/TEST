@@ -133,6 +133,7 @@ th{color:var(--muted);font-size:12px;font-weight:normal}
 .verification-preview{border:1px solid var(--accent);background:#0d1c2e;border-radius:12px;padding:14px;margin-top:12px}
 .verification-preview input,.verification-preview select{min-width:90px;width:100%;padding:8px}
 .snapshot-card{border:1px solid var(--line);border-radius:10px;padding:12px;margin:9px 0;background:#0d192b}
+.comparison-summary{border-color:var(--accent);background:#10243a}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .scenario{display:flex;flex-direction:column}
 .scenario button{margin-top:auto}
@@ -364,6 +365,7 @@ dialog::backdrop{background:#0009}
   <p class="muted">
     จำลองระดับกลุ่มหน่วยงาน 12 รอบเวลา × 8 การรันซ้ำต่อแผน
   </p>
+  <div id="activeParameters" class="notice"><b>ค่าที่ใช้อยู่:</b> กำลังโหลด</div>
   <div class="card gap" style="border-color:var(--accent);background:linear-gradient(115deg,#142b41,#17243a)">
     <div class="split-title">
       <div>
@@ -503,7 +505,8 @@ dialog::backdrop{background:#0009}
       </div>
       <div class="actions">
         <button id="runButton" class="primary">▶ จำลองแผนที่เลือก</button>
-        <button id="resetScenario">คืนค่าตัวอย่าง</button>
+        <button id="cloneScenario">โคลนสถานการณ์ปัจจุบันเพื่อแก้ต่อ</button>
+        <button id="resetScenario">รีเซ็ตเป็นค่าเริ่มต้น</button>
       </div>
     </div>
 
@@ -730,6 +733,10 @@ dialog::backdrop{background:#0009}
     <div class="split-title">
       <h2>Audit Trail · Local Demo</h2>
       <button id="downloadWorkspace">สำรอง Workspace JSON</button>
+    </div>
+    <div class="actions gap">
+      <button id="downloadExperimentHistory">ส่งออกประวัติการทดลอง JSON</button>
+      <button id="downloadExperimentHistoryText">ส่งออกสรุปประวัติการทดลอง</button>
     </div>
     <div id="auditList"></div>
     <button id="clearWorkspace" class="danger">ล้างข้อมูลต้นแบบทั้งหมด</button>
@@ -989,6 +996,7 @@ function audit(event) {
 }
 
 let currentPreset = clone(presets[0]);
+let scenarioSource = "ค่าเริ่มต้น";
 let lastRun = null;
 let generatedScenario = null;
 let selectedCandidates = [];
@@ -1231,7 +1239,7 @@ function renderScenarios(){
       <button class="gap" data-load-scenario="${esc(scenario.id)}">ใช้สถานการณ์นี้</button></article>`).join("")||`<div class="empty">${selectedScenarioCategory?"หมวดนี้ยังไม่มีผลลัพธ์ตามคำค้น":"เลือกประเด็นที่สนใจเพื่อดูสถานการณ์"}</div>`;
   document.querySelectorAll("[data-load-scenario]").forEach(button=>button.onclick=()=>{
     const selected=allScenarios().find(item=>item.id===button.dataset.loadScenario);
-    if(selected){loadScenario(selected);toast("โหลดสถานการณ์แล้ว ตรวจค่าก่อนจำลองได้เลย")}
+    if(selected){loadScenario(selected,"คลังสถานการณ์");toast("โหลดสถานการณ์แล้ว ตรวจค่าก่อนจำลองได้เลย")}
   });
   document.querySelectorAll("[data-delete-scenario]").forEach(button=>button.onclick=()=>{
     workspace.scenarios=workspace.scenarios.filter(item=>item.id!==button.dataset.deleteScenario);
@@ -1250,7 +1258,7 @@ function showRegion(regionKey){
   $("regionDetail").innerHTML=`<h3>${esc(region.name)}</h3><p>${esc(region.mission)}</p><p class="muted">เลือกจังหวัดเพื่อใส่ภารกิจนี้เป็นสถานการณ์ในห้องจำลอง</p>`;
   $("provinceChoices").innerHTML=region.provinces.map(province=>`<button class="province-chip" data-province="${esc(province)}">📍 ${esc(province)} · สร้างโจทย์</button>`).join("");
   document.querySelectorAll("[data-province]").forEach(button=>button.onclick=()=>{
-    const scenario=scenarioFromRegion(regionKey,button.dataset.province);loadScenario(scenario);openPage("simulation");
+    const scenario=scenarioFromRegion(regionKey,button.dataset.province);loadScenario(scenario,"แผนที่ภารกิจ · "+button.dataset.province);openPage("simulation");
     toast("โหลดโจทย์จังหวัดแล้ว ปรับสมมติฐานก่อนจำลองได้");$("caseName").focus();
   });
 }
@@ -1259,7 +1267,7 @@ $("customScenarioRegion").innerHTML=Object.entries(regionData).map(([key,value])
 $("customScenarioForm").onsubmit=event=>{
   event.preventDefault();const region=regionData[$("customScenarioRegion").value];
   const scenario={id:uid(),name:$("customScenarioName").value.trim(),description:"ทีมสร้างสถานการณ์จากสมมติฐานที่กรอก",pressure:"ทีมกำหนด",category:"บริการประชาชน",regionName:region.name,workGrowth:valueNumber("customWork",0,100),staffCut:valueNumber("customStaff",0,100),digitalGain:valueNumber("customDigital",0,100),friction:valueNumber("customFriction",0,100),structure:"keep",stress:"none",external:$("customExternal").value,custom:true};
-  workspace.scenarios.unshift(scenario);persist();renderScenarios();loadScenario(scenario);event.target.reset();openPage("simulation");toast("บันทึกสถานการณ์ในเครื่องนี้แล้ว");
+  workspace.scenarios.unshift(scenario);persist();renderScenarios();loadScenario(scenario,"ทีมสร้างสถานการณ์");event.target.reset();openPage("simulation");toast("บันทึกสถานการณ์ในเครื่องนี้แล้ว");
 };
 
 const sliderIds=["workGrowth","staffCut","digitalGain","friction","planAProcess","planBTransfer"];
@@ -1267,26 +1275,42 @@ const sliderIds=["workGrowth","staffCut","digitalGain","friction","planAProcess"
 function updateLabels() {
   sliderIds.forEach(id=>$(id+"Label").textContent=$(id).value);
 }
-sliderIds.forEach(id=>$(id).oninput=updateLabels);
+sliderIds.forEach(id=>$(id).oninput=()=>{updateLabels();updateActiveParameters();});
 
-function loadScenario(scenario) {
+function loadScenario(scenario,source="คลังสถานการณ์",preservePlanSettings=false) {
   currentPreset=clone(scenario);
+  scenarioSource=source;
   $("caseName").value=scenario.name;
   sliderIds.forEach(id=>$(id).value=scenario[id]);
-  $("planAProcess").value=0;
-  $("planBTransfer").value=10;
+  if(!preservePlanSettings){$("planAProcess").value=0;$("planBTransfer").value=10;}
   $("structure").value=scenario.structure;
   $("stress").value=scenario.stress;
   $("externalFactor").value=scenario.external||"none";
   updateLabels();
+  updateActiveParameters();
 }
 $("loadChiangRaiCase").onclick=()=>{
   const scenario=presets.find(item=>item.id==="flood");
-  loadScenario(scenario);
+  loadScenario(scenario,"กรณีศึกษาเชียงราย");
   $("caseName").focus();
   toast("โหลดกรณีศึกษาเชียงรายแล้ว ตรวจและปรับสมมติฐานก่อนจำลองได้เลย");
 };
-$("resetScenario").onclick=()=>loadScenario(currentPreset);
+$("resetScenario").onclick=()=>{selectedPlanIds=new Set(["A","B","C"]);renderPlans();$("seed").value=2026;loadScenario(presets[0],"ค่าเริ่มต้น");toast("คืนค่าสถานการณ์ แผน และ Seed เป็นค่าเริ่มต้นแล้ว");};
+$("cloneScenario").onclick=()=>{
+  const cloneNow={...readScenario(),id:"clone-"+uid(),name:"สำเนา: "+($("caseName").value.trim()||currentPreset.name),description:"โคลนจากค่าปัจจุบันเพื่อทดลองปรับบางตัวแปร",category:currentPreset.category||"ทีมกำหนด",regionName:currentPreset.regionName||"ส่วนกลาง",stakeholders:currentPreset.stakeholders||"หน่วยงานเจ้าภาพ · หน่วยงานคู่ประสาน",custom:true};
+  loadScenario(cloneNow,"โคลนจาก: "+scenarioSource,true);$("caseName").focus();toast("โคลนค่าปัจจุบันแล้ว แก้เฉพาะตัวแปรที่ต้องการได้เลย");
+};
+
+function updateActiveParameters() {
+  const host=$("activeParameters");if(!host)return;
+  const selected=typeof selectedPlans==="function"?selectedPlans():[];
+  const labels={keep:"คงโครงสร้างเดิม",merge:"รวมทีม",none:"ไม่มี",surge:"งานพุ่งรอบ 5–7",absence:"กำลังบริการลดรอบ 5–7",disaster:"ภัยพิบัติ",budget:"งบตึงตัว",cyber:"ระบบขัดข้อง",inclusion:"การเข้าถึงดิจิทัล"};
+  host.innerHTML=`<b>Active Parameters · ค่าที่ใช้อยู่ปัจจุบัน</b><br>
+    <small>แหล่งสถานการณ์: <b>${esc(scenarioSource)}</b> · ${esc($("caseName").value.trim()||currentPreset.name)}</small><br>
+    <small>งาน +${fmt(valueNumber("workGrowth",0,100))}% · คนไม่พร้อม ${fmt(valueNumber("staffCut",0,100))}% · ดิจิทัล +${fmt(valueNumber("digitalGain",0,100))}% · ประสาน ${fmt(valueNumber("friction",0,100))}%</small><br>
+    <small>โครงสร้าง: ${esc(labels[$("structure").value]||$("structure").value)} · Stress: ${esc(labels[$("stress").value]||$("stress").value)} · ภายนอก: ${esc(labels[$("externalFactor").value]||$("externalFactor").value)}</small><br>
+    <small>แผนที่เลือก: ${selected.length?selected.map(plan=>esc(plan.id.length===1?"แผน "+plan.id:plan.name)).join(" · "):"ยังไม่ได้เลือกแผน"} · ค่า A ปรับขั้นตอน +${fmt(valueNumber("planAProcess",0,100))}% · ค่า B จัดสรรข้ามหน่วย ${fmt(valueNumber("planBTransfer",0,100))}% · Seed ${fmt(valueNumber("seed",0,4294967295))}</small>`;
+}
 
 function readScenario() {
   return {
@@ -1305,6 +1329,8 @@ function readScenario() {
   };
 }
 
+["caseName","structure","stress","externalFactor","seed"].forEach(id=>$(id).addEventListener(id==="caseName"||id==="seed"?"input":"change",updateActiveParameters));
+
 const basePlans=[
   {id:"A",name:"ปรับขั้นตอนภายในหน่วย",transferPct:0,digitalGain:0,trainingGain:0,coordinationReduction:0,costAdd:0},
   {id:"B",name:"จัดสรรกำลังข้ามหน่วย",transferPct:10,digitalGain:0,trainingGain:0,coordinationReduction:0,costAdd:5},
@@ -1314,9 +1340,10 @@ function allPlans(){return [...basePlans,...workspace.planTemplates]}
 let selectedPlanIds=new Set(["A","B","C"]);
 function renderPlans(){
   $("planChoices").innerHTML=allPlans().map(plan=>`<label class="tag" style="cursor:pointer"><input type="checkbox" data-plan-choice="${esc(plan.id)}" ${selectedPlanIds.has(plan.id)?"checked":""} style="width:auto"> ${esc(plan.id.length===1?"แผน "+plan.id:plan.name)} · ${esc(plan.name)}</label>`).join("");
-  document.querySelectorAll("[data-plan-choice]").forEach(box=>box.onchange=()=>box.checked?selectedPlanIds.add(box.dataset.planChoice):selectedPlanIds.delete(box.dataset.planChoice));
+  document.querySelectorAll("[data-plan-choice]").forEach(box=>box.onchange=()=>{box.checked?selectedPlanIds.add(box.dataset.planChoice):selectedPlanIds.delete(box.dataset.planChoice);updateActiveParameters();});
   $("customPlanList").innerHTML=workspace.planTemplates.length?workspace.planTemplates.map(plan=>`<p><b>${esc(plan.name)}</b> <span class="tag">ย้าย ${plan.transferPct}% · ดิจิทัล ${plan.digitalGain}% · ฝึก ${plan.trainingGain}% · ลดประสานงาน ${plan.coordinationReduction}%</span> <button type="button" class="danger" data-delete-plan="${esc(plan.id)}">ลบแผน</button></p>`).join(""):'<small>ยังไม่มีแผนที่สร้างเอง</small>';
   document.querySelectorAll("[data-delete-plan]").forEach(button=>button.onclick=()=>{workspace.planTemplates=workspace.planTemplates.filter(plan=>plan.id!==button.dataset.deletePlan);selectedPlanIds.delete(button.dataset.deletePlan);persist();renderPlans();});
+  updateActiveParameters();
 }
 function selectedPlans(){return allPlans().filter(plan=>selectedPlanIds.has(plan.id))}
 renderPlans();
@@ -1543,7 +1570,8 @@ async function runSimulation() {
     };
 
     workspace.history.unshift({
-      id:lastRun.id,name:config.name,at:lastRun.at,best:best[0].plan.name
+      id:lastRun.id,name:config.name,at:lastRun.at,best:best[0].plan.name,
+      snapshot:createComparisonSnapshot(lastRun)
     });
     workspace.history=workspace.history.slice(0,50);
     audit("รัน Scenario: "+config.name);
@@ -1572,6 +1600,7 @@ function renderResults() {
         <h2>ผลจำลอง: ${esc(lastRun.config.name)}</h2>
         <span class="badge yellow">ข้อมูลสมมติ · ต้องตรวจสอบก่อนใช้</span>
       </div>
+      <div class="notice comparison-summary gap">${comparisonSummaryHtml(lastRun)}</div>
 
       <div class="grid three">
         ${lastRun.plans.map(plan=>`
@@ -1720,6 +1749,17 @@ function createComparisonSnapshot(run) {
     plans:run.plans.map(item=>({id:item.plan.id,name:item.plan.name,completion:item.metrics.completion.mean,load:item.metrics.load.mean,peakLoad:item.metrics.peakLoad.mean,delay:item.metrics.delay.mean,backlog:item.metrics.backlog.mean})),
     disclaimer:"Synthetic aggregate comparison only; not individual assessment or operational instruction"
   };
+}
+
+function comparisonSummaryHtml(run) {
+  const ranked=[...run.plans].sort((a,b)=>b.metrics.completion.mean-a.metrics.completion.mean);
+  if(ranked.length<2)return `<b>Comparison Summary</b><br>เลือกอย่างน้อย 2 แผนเพื่อดูความต่างของแผนหลักและทางเลือก`;
+  const main=ranked[0],alternative=ranked[1];
+  const difference=(key,digits=1)=>fmt(main.metrics[key].mean-alternative.metrics[key].mean,digits);
+  return `<b>Comparison Summary · แผนหลักเทียบทางเลือก</b><br>
+    <small>แผนหลักตามงานเสร็จ: <b>${esc(main.plan.name)}</b> (${fmt(main.metrics.completion.mean)}% งานเสร็จ) · ทางเลือก: <b>${esc(alternative.plan.name)}</b> (${fmt(alternative.metrics.completion.mean)}%)</small><br>
+    <small>ส่วนต่าง (แผนหลัก − ทางเลือก): งานเสร็จ ${difference("completion")}% · ภาระงานสูงสุด ${difference("peakLoad")}% · เวลารอ ${difference("delay")} รอบ · งานค้าง ${difference("backlog")}</small><br>
+    <small>อ่านประกอบกับภาระงานและข้อจำกัดด้านคุณภาพบริการ เพราะแผนที่งานเสร็จสูงสุดอาจไม่ดีที่สุดทุกมิติ</small>`;
 }
 
 function renderComparisonSnapshots() {
@@ -2008,7 +2048,7 @@ $("applyAI").onclick=()=>{
   if(!generatedScenario)return;
   $("aiOutput").querySelectorAll("[data-ai-override]").forEach(input=>generatedScenario[input.dataset.aiOverride]=clamp(Math.trunc(Number(input.value)||0),0,100));
   generatedScenario.structure=$("aiOverrideStructure").value;
-  loadScenario(generatedScenario);
+  loadScenario(generatedScenario,"Scenario Builder · Verification Check");
   openPage("simulation");
 };
 
@@ -2196,6 +2236,31 @@ $("downloadWorkspace").onclick=()=>downloadJSON({
   disclaimer:"Local demo; synthetic data; no legal or operational effect"
 },"org-twin-workspace.json");
 
+$("downloadExperimentHistory").onclick=()=>downloadJSON({
+  format:"GovTwin OS experiment history",
+  exportedAt:new Date().toISOString(),
+  runs:workspace.history,
+  trialDrafts:workspace.trials,
+  comparisonSnapshots:workspace.comparisonSnapshots||[],
+  latestRun:lastRun?createComparisonSnapshot(lastRun):null,
+  disclaimer:"Synthetic aggregate-level experiment records only"
+},"govtwin-experiment-history.json");
+
+$("downloadExperimentHistoryText").onclick=()=>{
+  const lines=["GovTwin OS · ประวัติการทดลอง","ข้อมูลสังเคราะห์ระดับกลุ่ม · ไม่ใช่การประเมินรายบุคคล","จำนวนการรัน: "+workspace.history.length,""];
+  workspace.history.forEach((run,index)=>{
+    lines.push(`${index+1}. ${run.name} · ${new Date(run.at).toLocaleString("th-TH")} · แผนงานเสร็จสูงสุด: ${run.best}`);
+    if(run.snapshot){
+      const assumptions=run.snapshot.assumptions;
+      lines.push(`   สมมติฐาน: งาน +${assumptions.workGrowth}% · คนไม่พร้อม ${assumptions.staffCut}% · ดิจิทัล +${assumptions.digitalGain}% · ประสาน ${assumptions.friction}%`);
+      run.snapshot.plans.forEach(plan=>lines.push(`   ${plan.id} ${plan.name}: งานเสร็จ ${fmt(plan.completion)}% · ภาระสูงสุด ${fmt(plan.peakLoad)}% · เวลารอ ${fmt(plan.delay)} รอบ · งานค้าง ${fmt(plan.backlog)}`));
+    }
+    lines.push("");
+  });
+  lines.push("ร่างแผนทดลอง: "+workspace.trials.length,"Snapshot เปรียบเทียบที่บันทึก: "+(workspace.comparisonSnapshots||[]).length);
+  downloadText(lines.join("\n"),"govtwin-experiment-history.txt");
+};
+
 $("clearWorkspace").onclick=()=>{
   if(!confirm("ล้างประวัติ แผนทดลอง Wallet และ Feedback ทั้งหมด?"))return;
   workspace={history:[],trials:[],missions:[],feedback:[],audit:[],scenarios:[],planTemplates:[],comparisonSnapshots:[]};
@@ -2214,7 +2279,7 @@ function updateClock() {
   });
 }
 updateClock();setInterval(updateClock,30000);
-loadScenario(presets[0]);
+loadScenario(presets[0],"ค่าเริ่มต้น");
 renderWorkspace();
 drawCity();
 drawGraph();
