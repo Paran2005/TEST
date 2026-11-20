@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Young-Mai-Dai-Kid OS 2.0 | Org-Twin</title>
+<style>
+:root {
+  --bg:#0b1221;
+  --sidebar:#0f172a;
+  --panel:#142138;
+  --panel2:#1b2c46;
+  --line:#2c405d;
+  --text:#edf4ff;
+  --muted:#9fb1ca;
+  --accent:#38bdf8;
+  --green:#34d399;
+  --yellow:#fbbf24;
+  --red:#fb7185;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font:14px/1.7 Tahoma,Arial,sans-serif;
+}
+button,input,select,textarea{font:inherit}
+button{
+  cursor:pointer;border:1px solid var(--line);
+  background:var(--panel2);color:var(--text);
+  padding:10px 14px;border-radius:10px;
+}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{
+  background:var(--accent);color:#082f49;
+  border-color:var(--accent);font-weight:bold;
+}
+button.danger{color:var(--red)}
+input,select,textarea{
+  width:100%;padding:10px 12px;color:var(--text);
+  border:1px solid var(--line);border-radius:10px;background:#0d192c;
+}
+input[type=range]{padding:0;accent-color:var(--accent)}
+textarea{min-height:105px;resize:vertical}
+label{display:block;margin:12px 0 5px;color:var(--muted)}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:27px;line-height:1.45}
+h2{font-size:20px}h3{font-size:16px}
+small,.muted{color:var(--muted)}
+.shell{display:grid;grid-template-columns:238px 1fr;min-height:100vh}
+.sidebar{
+  padding:22px 14px;background:var(--sidebar);
+  border-right:1px solid var(--line);height:100vh;
+  position:sticky;top:0;display:flex;flex-direction:column;
+}
+.brand{font-size:20px;font-weight:bold;color:var(--accent)}
+.brand-sub{font-size:11px;letter-spacing:1px;color:var(--muted)}
+nav{display:grid;gap:7px;margin-top:25px}
+nav button{text-align:left;background:transparent;border-color:transparent}
+nav button.active{
+  color:var(--accent);background:#1c304c;border-color:var(--line);
+}
+.side-bottom{
+  margin-top:auto;padding:14px;border:1px solid var(--line);
+  border-radius:12px;color:var(--muted);font-size:12px;
+}
+main{padding:25px;min-width:0}
+.topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:10px;margin-bottom:23px;flex-wrap:wrap;
+}
+.badge{
+  display:inline-block;border:1px solid var(--line);
+  border-radius:30px;padding:4px 9px;color:var(--accent);font-size:11px;
+}
+.badge.green{color:var(--green)}.badge.yellow{color:var(--yellow)}
+.view{display:none}.view.active{display:block}
+.hero{
+  padding:25px;border:1px solid var(--line);border-radius:17px;
+  background:linear-gradient(115deg,#15364b,#192644);margin-bottom:18px;
+}
+.grid{display:grid;gap:16px}
+.two{grid-template-columns:1fr 1fr}
+.three{grid-template-columns:repeat(3,1fr)}
+.four{grid-template-columns:repeat(4,1fr)}
+.card{
+  padding:20px;background:var(--panel);
+  border:1px solid var(--line);border-radius:15px;min-width:0;
+}
+.metric{font-size:31px;color:var(--accent);font-weight:bold}
+.gap{margin-top:18px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.notice{
+  padding:12px 15px;border:1px solid #64522b;
+  background:#2c281c;color:#f4dfaf;border-radius:11px;margin-bottom:18px;
+}
+.flow{display:flex;gap:7px;flex-wrap:wrap}
+.flow span{
+  padding:8px 11px;border:1px solid var(--line);
+  background:#0d192b;border-radius:8px;color:var(--muted);
+}
+canvas{
+  display:block;width:100%;background:#0d192b;border-radius:11px;
+}
+#city{cursor:pointer}
+.table-wrap{overflow:auto}
+table{border-collapse:collapse;width:100%}
+th,td{
+  padding:11px 9px;text-align:left;border-bottom:1px solid var(--line);
+  vertical-align:top;
+}
+th{color:var(--muted);font-size:12px;font-weight:normal}
+.tag{
+  display:inline-block;background:#263c58;border-radius:6px;
+  padding:2px 7px;font-size:11px;margin:2px;
+}
+.log{
+  background:#08111e;border-radius:11px;padding:15px;
+  min-height:180px;white-space:pre-wrap;font-family:monospace;
+  font-size:12px;color:var(--green);
+}
+.progress{height:7px;background:#08111e;border-radius:8px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0}
+.empty{
+  padding:20px;border:1px dashed var(--line);
+  color:var(--muted);border-radius:11px;
+}
+.scenario{display:flex;flex-direction:column}
+.scenario button{margin-top:auto}
+.split-title{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;flex-wrap:wrap;
+}
+.result-plan{border-top:3px solid var(--accent)}
+.result-plan.best{border-top-color:var(--green)}
+ul{padding-left:20px}li{margin-bottom:7px}
+footer{margin-top:24px;color:var(--muted);font-size:11px}
+#toast{
+  position:fixed;bottom:22px;right:22px;z-index:100;
+  background:var(--accent);color:#082f49;padding:13px 18px;
+  border-radius:12px;display:none;max-width:90vw;
+}
+dialog{
+  color:var(--text);background:var(--panel);
+  border:1px solid var(--line);border-radius:16px;
+  width:min(520px,90vw);padding:24px;
+}
+dialog::backdrop{background:#0009}
+@media(max-width:1150px){
+  .three{grid-template-columns:1fr}
+  .four{grid-template-columns:1fr 1fr}
+}
+@media(max-width:780px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto;padding:15px}
+  nav{display:flex;overflow:auto;margin-top:12px}
+  nav button{white-space:nowrap}
+  .side-bottom{display:none}
+  main{padding:16px}.two{grid-template-columns:1fr}
+  h1{font-size:23px}
+}
+@media print{
+  .sidebar,.topbar,.actions,footer{display:none!important}
+  .shell{display:block}main{padding:0}
+  body{background:white;color:black}
+  .card,.hero{background:white;color:black;border-color:#bbb}
+  .muted,small,th{color:#444}
+  .view:not(.active){display:none}
+}
+</style>
+</head>
+
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <div class="brand">◈ ORG-TWIN</div>
+  <div class="brand-sub">YOUNG-MAI-DAI-KID OS 2.0</div>
+
+  <nav aria-label="เมนูหลัก">
+    <button class="active" data-page="overview">◉ ศูนย์บัญชาการ</button>
+    <button data-page="organization">▧ โครงสร้าง & Org City</button>
+    <button data-page="simulation">◇ ห้องจำลององค์การ</button>
+    <button data-page="ai">✦ AI Scenario Builder</button>
+    <button data-page="operations">⇄ จตุเทพ Action Center</button>
+    <button data-page="learning">↺ Feedback & Audit</button>
+  </nav>
+
+  <div class="side-bottom">
+    <span class="badge green">● LOCAL DEMO</span>
+    <p class="gap" style="margin-bottom:0">
+      10,000 บุคลากรสมมติ<br>
+      จำลองระดับกลุ่มหน่วยงาน<br>
+      AI แบบกฎ ไม่ใช่ LLM<br>
+      ไม่ส่งข้อมูลออกจากเครื่อง
+    </p>
+  </div>
+</aside>
+
+<main>
+<header class="topbar">
+  <div>
+    <b>Organizational Digital Twin</b><br>
+    <small id="clock"></small>
+  </div>
+  <div>
+    <span class="badge">DATA → SIMULATE → DECIDE</span>
+    <span class="badge yellow">ข้อมูลสมมติ</span>
+  </div>
+</header>
+
+<!-- OVERVIEW -->
+<section id="overview" class="view active">
+  <div class="hero">
+    <span class="badge green">Human-in-Command</span>
+    <h1 style="margin-top:15px">
+      จำลององค์การ<br>ก่อนเปลี่ยนองค์การจริง
+    </h1>
+    <p class="muted">
+      เชื่อมโครงสร้าง คน ทักษะ ภารกิจ และ Workflow
+      เพื่อเห็นคอขวด ทดลองทางเลือก และตัดสินใจอย่างมีข้อมูล
+    </p>
+    <div class="actions">
+      <button class="primary" data-go="simulation">เริ่มจำลอง →</button>
+      <button data-go="organization">สำรวจองค์การ</button>
+    </div>
+  </div>
+
+  <div class="grid four">
+    <div class="card">
+      <div class="metric">10,000</div><small>บุคลากรสมมติในฐานข้อมูล</small>
+    </div>
+    <div class="card">
+      <div class="metric">6</div><small>หน่วยงานจำลอง</small>
+    </div>
+    <div class="card">
+      <div class="metric" id="statRuns">0</div><small>ชุดการจำลองสะสม</small>
+    </div>
+    <div class="card">
+      <div class="metric" id="statActions">0</div><small>แผนทดลองที่บันทึก</small>
+    </div>
+  </div>
+
+  <div class="card gap">
+    <h3>วงจร Org-Twin</h3>
+    <div class="flow">
+      <span>① Data Foundation</span>
+      <span>② Simulation Engine</span>
+      <span>③ จตุเทพ Modules</span>
+      <span>④ Decision Interface</span>
+      <span>⑤ Feedback & Calibration</span>
+    </div>
+  </div>
+
+  <div class="grid two gap">
+    <div class="card">
+      <h2>สถานะขีดความสามารถตั้งต้น</h2>
+      <div id="capability"></div>
+    </div>
+    <div class="card">
+      <h2>ประวัติการจำลอง</h2>
+      <div id="history"></div>
+    </div>
+  </div>
+
+  <div class="grid two gap">
+    <div class="card">
+      <h2>ผู้เกี่ยวข้องกับภารกิจ</h2>
+      <div class="flow">
+        <span>เจ้าภาพภารกิจ · กระทรวง/กรม</span>
+        <span>ผู้ปฏิบัติงาน · หน้างาน</span>
+        <span>ก.พ. · กำลังคนและทักษะ</span>
+        <span>สำนักงบประมาณ · ทรัพยากร</span>
+        <span>สพร./DGA · ข้อมูลและดิจิทัล</span>
+        <span>ประชาชน · ผู้ใช้บริการ</span>
+      </div>
+      <p class="muted gap">แต่ละฝ่ายร่วมออกแบบและทบทวนผลในขอบเขตบทบาทของตน ผู้มีอำนาจยังเป็นผู้ตัดสินใจ</p>
+    </div>
+    <div class="card">
+      <h2>แรงกดดันภายนอกที่ต้องเตรียมรับ</h2>
+      <div class="flow">
+        <span>ภัยพิบัติและเหตุฉุกเฉิน</span><span>งบประมาณผันผวน</span>
+        <span>ภัยไซเบอร์ / ระบบขัดข้อง</span><span>สังคมสูงวัย</span>
+        <span>ความเหลื่อมล้ำดิจิทัล</span><span>เศรษฐกิจและนโยบายเปลี่ยนเร็ว</span>
+      </div>
+      <p class="muted gap">เลือกแรงกดดันในห้องจำลองเพื่อดูผลต่อภาระงานหรือกำลังบริการ</p>
+    </div>
+  </div>
+
+  <div class="notice gap">
+    ต้นแบบนี้แสดงกลไกการทำงานจาก Blueprint
+    ไม่ใช่ข้อมูลราชการจริง ไม่รับรองผลประหยัด
+    และไม่ใช้ผลจำลองตัดสินบุคลากรรายบุคคล
+  </div>
+</section>
+
+<!-- ORGANIZATION -->
+<section id="organization" class="view">
+  <h1>Organizational Data & Relationship Graph</h1>
+  <p class="muted">
+    แยกสายรายงานออกจากการประสานงาน และเชื่อมกับทักษะและภารกิจ
+  </p>
+
+  <div class="grid two">
+    <div class="card">
+      <h2>Org City · 2.5D</h2>
+      <canvas id="city" width="800" height="440"
+        aria-label="เมืองจำลองหน่วยงาน"></canvas>
+      <p class="muted gap">
+        คลิกอาคารเพื่อดูรายละเอียด<br>
+        ความสูง = กำลังคนตั้งต้น · สี = ภาระงานตั้งต้น<br>
+        ฟ้า: ≤100% · เหลือง: >100–120% · ชมพู: >120%
+      </p>
+    </div>
+    <div class="card">
+      <h2>สายรายงาน & การประสานงาน</h2>
+      <canvas id="orgGraph" width="800" height="440"
+        aria-label="กราฟความสัมพันธ์องค์การ"></canvas>
+      <p class="muted gap">
+        เส้นทึบ = สายรายงานสมมติ<br>
+        เส้นประสีฟ้า = การประสานงานสมมติ
+      </p>
+    </div>
+  </div>
+
+  <div class="card gap">
+    <h2>ฐานข้อมูลองค์การ</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>หน่วยงาน</th><th>บุคลากร</th><th>ภาระงาน</th>
+            <th>ทักษะหลัก</th><th>ภารกิจ</th>
+          </tr>
+        </thead>
+        <tbody id="orgTable"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- SIMULATION -->
+<section id="simulation" class="view">
+  <h1>ห้องจำลององค์การ</h1>
+  <p class="muted">
+    จำลองระดับกลุ่มหน่วยงาน 12 รอบเวลา × 8 การรันซ้ำต่อแผน
+  </p>
+  <div id="scenarioCards" class="grid three"></div>
+
+  <div class="grid two gap">
+    <div class="card">
+      <h2>กำหนดสถานการณ์</h2>
+
+      <label for="caseName">ชื่อสถานการณ์</label>
+      <input id="caseName" maxlength="160">
+
+      <label for="workGrowth">
+        ปริมาณงานเพิ่ม: <b id="workGrowthLabel"></b>%
+      </label>
+      <input id="workGrowth" type="range" min="0" max="80">
+
+      <label for="staffCut">
+        กำลังคนไม่พร้อมใช้งานเริ่มต้น: <b id="staffCutLabel"></b>%
+      </label>
+      <input id="staffCut" type="range" min="0" max="30">
+
+      <label for="digitalGain">
+        แผน C เพิ่มกำลังบริการด้วยดิจิทัล:
+        <b id="digitalGainLabel"></b>%
+      </label>
+      <input id="digitalGain" type="range" min="0" max="40">
+
+      <label for="friction">
+        ความล่าช้าจากการประสานงาน: <b id="frictionLabel"></b>%
+      </label>
+      <input id="friction" type="range" min="0" max="35">
+
+      <label for="structure">โครงสร้างในการจำลอง</label>
+      <select id="structure">
+        <option value="keep">คงหน่วยงานเดิม</option>
+        <option value="merge">รวมทีมบริการและทีมพื้นที่</option>
+      </select>
+
+      <label for="stress">Stress Test</label>
+      <select id="stress">
+        <option value="none">ไม่มีเหตุการณ์เพิ่ม</option>
+        <option value="surge">งานเพิ่มอีก 25% ในรอบ 5–7</option>
+        <option value="absence">กำลังบริการลดอีก 15% ในรอบ 5–7</option>
+      </select>
+
+      <label for="externalFactor">แรงกดดันภายนอก</label>
+      <select id="externalFactor">
+        <option value="none">ไม่มีเหตุการณ์เพิ่มเติม</option>
+        <option value="disaster">ภัยพิบัติ / เหตุฉุกเฉิน เพิ่มงานช่วงรอบ 5–7</option>
+        <option value="budget">งบประมาณตึงตัว ลดกำลังบริการ 5%</option>
+        <option value="cyber">ระบบดิจิทัลขัดข้องช่วงรอบ 5–7</option>
+        <option value="inclusion">ประชาชนเข้าไม่ถึงดิจิทัล ลดผลของแผน C</option>
+      </select>
+
+      <label for="seed">Random seed — ใช้เดิมเพื่อรันซ้ำ</label>
+      <input id="seed" type="number" min="0" max="4294967295"
+        step="1" value="2026">
+
+      <div class="actions">
+        <button id="runButton" class="primary">▶ จำลองแผน A / B / C</button>
+        <button id="resetScenario">คืนค่าตัวอย่าง</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Simulation Console</h2>
+      <div class="progress"><i id="progress"></i></div>
+      <div id="simLog" class="log gap" role="status" aria-live="polite">
+พร้อมจำลอง...
+      </div>
+
+      <h3 class="gap">แผนที่เปรียบเทียบ</h3>
+      <ul>
+        <li><b>A:</b> จัดสรรและทำงานแบบเดิม</li>
+        <li><b>B:</b> ย้ายกำลังทำงานจากหน่วยเบาไปหน่วยหนัก
+          โดยยังรักษาความสามารถหน่วยต้นทาง</li>
+        <li><b>C:</b> ไม่ย้ายคน แต่เพิ่มกำลังบริการดิจิทัล
+          และลดความล่าช้าการประสานงาน</li>
+      </ul>
+
+      <div class="notice gap">
+        ภาระงานสูงอาจเกิดจากปริมาณงาน ทักษะ กระบวนการ
+        หรือข้อจำกัดทรัพยากร ไม่ใช่หลักฐานว่าบุคลากรทำงานไม่ดี
+      </div>
+
+      <details>
+        <summary>สมมติฐานของแบบจำลอง</summary>
+        <p class="muted">
+          งานและกำลังบริการใช้หน่วยสมมติเดียวกัน<br>
+          เวลารอเป็นค่าประมาณจากงานค้างต่อกำลังบริการ<br>
+          ใช้ความผันผวนของงาน ±6% ต่อรอบ<br>
+          รวมทีมมีต้นทุนประสิทธิภาพ 10% ใน 3 รอบแรก<br>
+          แผน B มีข้อจำกัดความเข้ากันได้ของทักษะแบบสมมติ<br>
+          ยังไม่ใช้ Mesa ไม่ใช่ Discrete-Event Model เต็มรูปแบบ
+          และยังไม่ได้สอบเทียบกับองค์การจริง
+        </p>
+      </details>
+    </div>
+  </div>
+
+  <div id="results" class="gap"></div>
+</section>
+
+<!-- AI -->
+<section id="ai" class="view">
+  <h1>AI Scenario Builder</h1>
+  <div class="notice">
+    AI จำลองแบบกฎ: อ่านคำสำคัญและเปอร์เซ็นต์
+    ไม่ได้เรียก Generative AI และอาจตีความคำปฏิเสธผิด
+    ต้องตรวจค่าก่อนรันเสมอ
+  </div>
+
+  <div class="grid two">
+    <div class="card">
+      <h2>อธิบายการเปลี่ยนแปลง</h2>
+      <label for="aiPrompt">ไม่ใส่ข้อมูลส่วนบุคคล</label>
+      <textarea id="aiPrompt" maxlength="1500"
+        placeholder="เช่น จังหวัดเชียงรายต้องเพิ่มทีมติดตามคุณภาพน้ำ งานเพิ่ม 40% ขาดคน 10% ดิจิทัล 25% ประสานงาน 20%"></textarea>
+
+      <div class="actions">
+        <button id="generateAI" class="primary">✦ สร้าง Scenario</button>
+        <button id="aiExample">ใส่ตัวอย่างเชียงราย</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>ผลตีความและค่าเริ่มต้น</h2>
+      <div id="aiOutput" class="empty">ยังไม่มีสถานการณ์</div>
+      <button id="applyAI" class="primary gap" hidden>
+        ตรวจสอบพารามิเตอร์ก่อนจำลอง →
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- OPERATIONS -->
+<section id="operations" class="view">
+  <h1>จตุเทพ · Action Center</h1>
+  <p class="muted">
+    เปลี่ยนข้อเสนอจากผลจำลองเป็นแผนทดลอง
+    โดยไม่มีผลมอบหมายงานหรืออนุมัติทางกฎหมายจริง
+  </p>
+
+  <div id="actionContext" class="notice">
+    ยังไม่มีผลจำลอง เลือกสถานการณ์และรันก่อนเพื่อเชื่อมแผนกับ Action Center
+  </div>
+
+  <div class="grid two">
+    <div class="card">
+      <h2>① Gov-Gig Marketplace</h2>
+      <label for="gigSkill">ทักษะที่ภารกิจต้องใช้</label>
+      <select id="gigSkill"></select>
+
+      <label for="gigName">ชื่อภารกิจทดลอง</label>
+      <input id="gigName" maxlength="160"
+        value="ทีมข้ามหน่วยเพื่อปรับปรุงกระบวนการ">
+
+      <div class="actions">
+        <button id="findPeople">ค้นหาผู้มีทักษะ 8 คน</button>
+        <button id="confirmGig" class="primary">บันทึกภารกิจทดลอง</button>
+      </div>
+
+      <div id="candidateList" class="gap"></div>
+      <p class="muted gap">
+        จับคู่ตามทักษะและกำลังว่างสมมติ ยังไม่ตรวจคุณสมบัติ
+        หรือฐานอำนาจการจัดสรรคน และไม่จองกำลังคนจริง
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>② Skill Wallet & Career Passport</h2>
+      <p class="muted">
+        เก็บประสบการณ์จากภารกิจทดลอง
+        ไม่ใช่หลักฐานการปฏิบัติงานจริงหรือ VC ที่ลงนาม
+      </p>
+      <div id="walletList"></div>
+    </div>
+  </div>
+
+  <div class="grid two gap">
+    <form id="sandboxForm" class="card">
+      <h2>③ Policy Sandbox</h2>
+
+      <label for="trialName">ชื่อแผนทดลอง</label>
+      <input id="trialName" maxlength="160" required>
+
+      <label for="trialPlan">แผนจากผลจำลอง</label>
+      <select id="trialPlan">
+        <option value="A">แผน A</option>
+        <option value="B">แผน B</option>
+        <option value="C">แผน C</option>
+      </select>
+
+      <label for="trialKPI">เกณฑ์ประเมินก่อนทดลอง</label>
+      <textarea id="trialKPI" maxlength="1500" required
+        placeholder="ระบุค่าฐาน ตัวชี้วัด เป้าหมาย และระยะเวลา"></textarea>
+
+      <label for="trialStop">เงื่อนไขหยุด / ผู้รับผิดชอบ</label>
+      <textarea id="trialStop" maxlength="1500" required></textarea>
+
+      <label>Nudge ที่จะทดลองใน workflow</label>
+      <div class="actions">
+        <button type="button" data-nudge="แจ้งเตือนขั้นตอนถัดไปและกำหนดเวลาให้ผู้รับผิดชอบ">เตือนขั้นตอนถัดไป</button>
+        <button type="button" data-nudge="แนะนำผู้มีทักษะตรง พร้อมแสดงเหตุผลและให้เจ้าตัวยืนยันก่อนเข้าร่วม">แนะนำทีมตามทักษะ</button>
+        <button type="button" data-nudge="แสดงเวลารอและงานค้างเทียบค่าฐาน พร้อมทางเลือกช่วยเหลือ">แสดงคอขวดเทียบค่าฐาน</button>
+        <button type="button" data-nudge="เตือนและเปิดช่องทางบริการออฟไลน์สำหรับผู้เข้าไม่ถึงดิจิทัล">ช่องทางออฟไลน์</button>
+      </div>
+      <small>กดเพื่อเพิ่มแนวทางที่เลือกลงในเงื่อนไขแผนทดลอง</small>
+
+      <button type="submit" class="primary gap">บันทึกร่างแผนทดลอง</button>
+      <p class="muted gap">
+        ไม่มีผลยกเว้นระเบียบ ไม่มี Safe Harbor
+        และไม่เป็นการอนุมัติจากหน่วยงานรัฐ
+      </p>
+    </form>
+
+    <div class="card">
+      <h2>④ Workforce Digital Twin</h2>
+      <label for="annualExit">อัตราออกจากระบบรวมต่อปี (%)</label>
+      <input id="annualExit" type="number" min="0" max="30"
+        step="0.1" value="3">
+
+      <label for="annualHire">รับใหม่ต่อปี (คน)</label>
+      <input id="annualHire" type="number" min="0" max="5000"
+        step="1" value="150">
+
+      <button id="projectButton" class="primary gap">ฉายภาพ 3 ปี</button>
+      <canvas id="workforceChart" width="760" height="300" class="gap"></canvas>
+      <div id="projectionText" class="gap"></div>
+      <small>
+        ใช้อัตราคงที่จากฐาน 10,000 คน
+        ไม่ใช่ Prophet หรือการทำนายการลาออกรายบุคคล
+      </small>
+    </div>
+  </div>
+
+  <div class="card gap">
+    <h2>ทะเบียนแผนทดลอง</h2>
+    <div id="trialList"></div>
+  </div>
+</section>
+
+<!-- FEEDBACK -->
+<section id="learning" class="view">
+  <h1>Feedback, Calibration & Audit</h1>
+
+  <div class="grid two">
+    <form id="feedbackForm" class="card">
+      <h2>บันทึกผลสังเกต</h2>
+      <label for="feedbackText">ผลที่พบ / ข้อจำกัด / บทเรียน</label>
+      <textarea id="feedbackText" maxlength="1500" required></textarea>
+
+      <label for="proposedFriction">
+        เสนอค่าความล่าช้าการประสานงาน (%)
+      </label>
+      <input id="proposedFriction" type="number"
+        min="0" max="35" value="15">
+
+      <div class="actions">
+        <button type="submit">บันทึก Feedback</button>
+        <button id="approveCalibration" type="button" class="primary">
+          ใช้พารามิเตอร์ในการรันครั้งถัดไป
+        </button>
+      </div>
+
+      <p class="muted gap">
+        ไม่ปรับโมเดลอัตโนมัติ และไม่แก้ผลจำลองเก่าย้อนหลัง
+        การกดใช้พารามิเตอร์เป็นการยืนยันในต้นแบบเท่านั้น
+      </p>
+    </form>
+
+    <div class="card">
+      <h2>Feedback Log</h2>
+      <div id="feedbackList"></div>
+    </div>
+  </div>
+
+  <div class="card gap">
+    <div class="split-title">
+      <h2>Audit Trail · Local Demo</h2>
+      <button id="downloadWorkspace">สำรอง Workspace JSON</button>
+    </div>
+    <div id="auditList"></div>
+    <p class="muted gap">
+      Local Storage แก้ไขหรือลบได้ ไม่ใช่ Immutable Log
+      และไม่มีระบบยืนยันตัวตน
+    </p>
+    <button id="clearWorkspace" class="danger">ล้างข้อมูลต้นแบบทั้งหมด</button>
+  </div>
+</section>
+
+<footer>
+  Young-Mai-Dai-Kid OS 2.0 · Org-Twin Prototype ·
+  ข้อมูลสมมติ · ไม่ใช่เครื่องมือประเมินบุคลากรหรือรับรองความปลอดภัย
+</footer>
+</main>
+</div>
+
+<dialog id="orgDialog">
+  <h2 id="dialogTitle"></h2>
+  <div id="dialogContent"></div>
+  <form method="dialog"><button class="primary gap">ปิด</button></form>
+</dialog>
+
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+
+/* -------------------- Utilities -------------------- */
+
+const $ = id => document.getElementById(id);
+const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+const fmt = n => Number(n).toLocaleString("th-TH", {
+  maximumFractionDigits:1
+});
+const clamp = (n,a,b) => Math.min(b,Math.max(a,n));
+const clone = obj => JSON.parse(JSON.stringify(obj));
+const average = values => values.reduce((s,v)=>s+v,0)/values.length;
+const wait = ms => new Promise(resolve=>setTimeout(resolve,ms));
+const uid = () => globalThis.crypto?.randomUUID?.() ||
+  Date.now()+"-"+Math.random().toString(16).slice(2);
+
+function valueNumber(id,min,max) {
+  const number = Number($(id).value);
+  return clamp(Number.isFinite(number)?number:min,min,max);
+}
+
+function rng(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a += 0x6D2B79F5;
+    let t = Math.imul(a ^ (a >>> 15),1 | a);
+    t ^= t + Math.imul(t ^ (t >>> 7),61 | t);
+    return ((t ^ (t >>> 14)) >>> 0)/4294967296;
+  };
+}
+
+let toastTimer;
+function toast(message) {
+  $("toast").textContent = message;
+  $("toast").style.display = "block";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>$("toast").style.display="none",4000);
+}
+
+function openPage(id) {
+  document.querySelectorAll(".view").forEach(view =>
+    view.classList.toggle("active",view.id===id));
+  document.querySelectorAll("[data-page]").forEach(button =>
+    button.classList.toggle("active",button.dataset.page===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.querySelectorAll("[data-page]").forEach(button =>
+  button.onclick=()=>openPage(button.dataset.page));
+document.querySelectorAll("[data-go]").forEach(button =>
+  button.onclick=()=>openPage(button.dataset.go));
+
+/* -------------------- Synthetic foundation -------------------- */
+
+const orgs = [
+  {
+    name:"สำนักงานยุทธศาสตร์",people:1400,load:.82,
+    skill:"นโยบาย",mission:"วางแผนและประเมินผล"
+  },
+  {
+    name:"หน่วยบริการประชาชน",people:2400,load:1.34,
+    skill:"บริการประชาชน",mission:"รับเรื่องและส่งมอบบริการ"
+  },
+  {
+    name:"ศูนย์ข้อมูล",people:1200,load:1.12,
+    skill:"ข้อมูล",mission:"วิเคราะห์และตรวจสอบข้อมูล"
+  },
+  {
+    name:"ทีมปฏิบัติการพื้นที่",people:2200,load:1.20,
+    skill:"ประสานงาน",mission:"ปฏิบัติงานและติดตามพื้นที่"
+  },
+  {
+    name:"ทีมดิจิทัล",people:1000,load:.94,
+    skill:"ดิจิทัล",mission:"พัฒนาระบบและกระบวนการ"
+  },
+  {
+    name:"ศูนย์ภูมิสารสนเทศ",people:1800,load:.84,
+    skill:"GIS",mission:"วิเคราะห์พื้นที่และจัดลำดับงาน"
+  }
+];
+
+const skillNames = orgs.map(org=>org.skill);
+const personnel = [];
+const dataRandom = rng(125);
+
+orgs.forEach((org,department) => {
+  for(let i=0;i<org.people;i++) {
+    personnel.push({
+      id:personnel.length+1,
+      department,
+      skills:[...new Set([
+        org.skill,
+        skillNames[Math.floor(dataRandom()*skillNames.length)]
+      ])],
+      availability:Math.round(40+dataRandom()*60)
+    });
+  }
+});
+
+const presets = [
+  {
+    id:"capacity",
+    name:"ภารกิจเพิ่ม แต่กำลังคนจำกัด",
+    description:"ดูว่างานค้างเกิดจากคนไม่พอหรือกระบวนการ",
+    workGrowth:30,staffCut:10,digitalGain:25,friction:15,
+    structure:"keep",stress:"none",external:"none"
+  },
+  {
+    id:"structure",
+    name:"รวมทีมบริการและทีมพื้นที่",
+    description:"ทดสอบต้นทุนช่วงเปลี่ยนผ่านและคอขวดใหม่",
+    workGrowth:15,staffCut:5,digitalGain:20,friction:20,
+    structure:"merge",stress:"absence",external:"budget"
+  },
+  {
+    id:"chiangrai",
+    name:"เชียงราย: ทีมติดตามคุณภาพน้ำ",
+    description:"จำลองการประสานงานเก็บตัวอย่าง ส่งแล็บ และแจ้งผล",
+    workGrowth:40,staffCut:10,digitalGain:25,friction:25,
+    structure:"keep",stress:"surge",external:"disaster"
+  }
+];
+
+/* -------------------- Persistence -------------------- */
+
+const STORAGE_KEY = "org-twin-os-v3";
+let workspace = {
+  history:[],trials:[],missions:[],feedback:[],audit:[]
+};
+
+try {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+  if(saved && Object.keys(workspace).every(key=>Array.isArray(saved[key]))) {
+    workspace = saved;
+  }
+} catch(error) {
+  console.warn("Cannot read local storage",error);
+}
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(workspace));
+  } catch(error) {
+    toast("บันทึกไม่ได้ กรุณาดาวน์โหลด Workspace ก่อนปิดหน้า");
+  }
+}
+
+function audit(event) {
+  workspace.audit.unshift({
+    id:uid(),event,at:new Date().toISOString()
+  });
+  workspace.audit = workspace.audit.slice(0,100);
+}
+
+let currentPreset = clone(presets);
+let lastRun = null;
+let generatedScenario = null;
+let selectedCandidates = [];
+let busy = false;
+
+/* -------------------- Dashboard -------------------- */
+
+function renderWorkspace() {
+  $("statRuns").textContent = fmt(workspace.history.length);
+  $("statActions").textContent = fmt(workspace.trials.length);
+
+  $("history").innerHTML = workspace.history.length
+    ? workspace.history.slice(0,5).map(item=>`
+      <p>
+        <b>${esc(item.name)}</b><br>
+        <small>${esc(new Date(item.at).toLocaleString("th-TH"))}
+        · งานเสร็จสูงสุด: แผน ${esc(item.best)}</small>
+      </p>
+    `).join("")
+    : '<div class="empty">ยังไม่มีผลจำลอง เริ่มที่ห้องจำลององค์การ</div>';
+
+  $("trialList").innerHTML = workspace.trials.length
+    ? workspace.trials.slice(0,20).map(trial=>`
+      <div class="gap">
+        <b>${esc(trial.name)}</b>
+        <span class="badge">แผน ${esc(trial.plan)} · ร่างทดลอง</span>
+        <p class="muted">
+          เกณฑ์: ${esc(trial.kpi)}<br>
+          เงื่อนไขหยุด: ${esc(trial.stop)}
+        </p>
+        <small>
+          ${esc(new Date(trial.at).toLocaleString("th-TH"))}
+          · อ้างอิง run: ${esc(trial.runId)}
+        </small>
+      </div>
+    `).join("")
+    : '<div class="empty">ยังไม่มีแผนทดลอง</div>';
+
+  $("feedbackList").innerHTML = workspace.feedback.length
+    ? workspace.feedback.slice(0,10).map(item=>`
+      <p>
+        ${esc(item.text)}<br>
+        <small>
+          เสนอความล่าช้า ${fmt(item.friction)}%
+          · ${esc(new Date(item.at).toLocaleString("th-TH"))}
+        </small>
+      </p>
+    `).join("")
+    : '<div class="empty">ยังไม่มี Feedback</div>';
+
+  $("auditList").innerHTML = workspace.audit.length
+    ? workspace.audit.slice(0,15).map(item=>`
+      <p style="margin-bottom:8px">
+        <small>${esc(new Date(item.at).toLocaleString("th-TH"))}</small>
+        · ${esc(item.event)}
+      </p>
+    `).join("")
+    : '<div class="empty">ยังไม่มีเหตุการณ์บันทึก</div>';
+
+  const wallet = new Map();
+  workspace.missions.forEach(mission => {
+    mission.members.forEach(person => {
+      if(!wallet.has(person.id)) {
+        wallet.set(person.id,{...person,experiences:[]});
+      }
+      wallet.get(person.id).experiences.push(mission.name);
+    });
+  });
+
+  $("walletList").innerHTML = wallet.size
+    ? [...wallet.values()].slice(0,12).map(person=>`
+      <p>
+        <b>Agent #${person.id}</b>
+        <span class="tag">${person.experiences.length} ประสบการณ์จำลอง</span><br>
+        <small>${person.experiences.map(esc).join(" / ")}</small>
+      </p>
+    `).join("")
+    : '<div class="empty">บันทึกภารกิจ Gov-Gig เพื่อสร้างประสบการณ์จำลอง</div>';
+}
+
+$("capability").innerHTML = orgs.map(org=>`
+  <div style="padding:8px 0;border-bottom:1px solid var(--line)">
+    <b>${esc(org.name)}</b>
+    <span class="badge" style="color:${
+      org.load>1.2?"var(--red)":org.load>1?"var(--yellow)":"var(--accent)"
+    }">${fmt(org.load*100)}% workload</span>
+    <br><small>${esc(org.skill)} · ${esc(org.mission)}</small>
+  </div>
+`).join("");
+
+$("orgTable").innerHTML = orgs.map(org=>`
+  <tr>
+    <td>${esc(org.name)}</td><td>${fmt(org.people)}</td>
+    <td>${fmt(org.load*100)}%</td><td>${esc(org.skill)}</td>
+    <td>${esc(org.mission)}</td>
+  </tr>
+`).join("");
+
+/* -------------------- City and graph -------------------- */
+
+const cityHitboxes = [];
+
+function polygon(ctx,points,color) {
+  ctx.beginPath();
+  points.forEach((point,index)=>
+    index?ctx.lineTo(...point):ctx.moveTo(...point));
+  ctx.closePath();ctx.fillStyle=color;ctx.fill();
+}
+
+function drawCity() {
+  const canvas = $("city"),ctx = canvas.getContext("2d");
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  cityHitboxes.length = 0;
+
+  for(let row=0;row<5;row++) {
+    ctx.beginPath();
+    ctx.moveTo(20,95+row*70);
+    ctx.lineTo(780,95+row*70);
+    ctx.strokeStyle="#20334a";ctx.stroke();
+  }
+
+  orgs.forEach((org,index)=>{
+    const col=index%3,row=Math.floor(index/3);
+    const x=65+col*240+row*25,y=190+row*180;
+    const width=135,depth=24,height=org.people/23;
+    const color=org.load>1.2?"#fb7185":org.load>1?"#fbbf24":"#38bdf8";
+
+    polygon(ctx,[
+      [x,y],[x+width,y],[x+width,y-height],[x,y-height]
+    ],color);
+    polygon(ctx,[
+      [x+width,y],[x+width+depth,y-depth],
+      [x+width+depth,y-height-depth],[x+width,y-height]
+    ],"#284361");
+    polygon(ctx,[
+      [x,y-height],[x+depth,y-height-depth],
+      [x+width+depth,y-height-depth],[x+width,y-height]
+    ],"#b6e5f8");
+
+    ctx.fillStyle="#e8f2ff";ctx.font="15px Tahoma";
+    ctx.fillText(org.name,x-12,y+28);
+    ctx.fillStyle="#9fb1ca";ctx.font="13px Tahoma";
+    ctx.fillText(fmt(org.people)+" คน · "+fmt(org.load*100)+"%",x,y+50);
+
+    cityHitboxes.push({
+      index,x:x-10,y:y-height-depth,
+      w:width+depth+20,h:height+depth+55
+    });
+  });
+}
+
+$("city").onclick = event => {
+  const canvas=$("city"),rect=canvas.getBoundingClientRect();
+  const x=(event.clientX-rect.left)*canvas.width/rect.width;
+  const y=(event.clientY-rect.top)*canvas.height/rect.height;
+  const hit=[...cityHitboxes].reverse().find(box=>
+    x>=box.x&&x<=box.x+box.w&&y>=box.y&&y<=box.y+box.h);
+  if(!hit)return;
+  const org=orgs[hit.index];
+  $("dialogTitle").textContent=org.name;
+  $("dialogContent").innerHTML=`
+    <p>กำลังคนตั้งต้น: <b>${fmt(org.people)} คน</b></p>
+    <p>ภาระงานตั้งต้น: <b>${fmt(org.load*100)}%</b></p>
+    <p>ทักษะหลัก: ${esc(org.skill)}</p>
+    <p>ภารกิจ: ${esc(org.mission)}</p>
+    <div class="notice">ข้อมูลสมมติ ไม่ใช่ผลประเมินหน่วยงานจริง</div>
+  `;
+  $("orgDialog").showModal();
+};
+
+function drawGraph() {
+  const canvas=$("orgGraph"),ctx=canvas.getContext("2d");
+  const points=[
+    [400,65],[210,175],[590,175],
+    [100,310],[300,310],[520,310],[700,310]
+  ];
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]].forEach(([a,b])=>{
+    ctx.beginPath();ctx.moveTo(...points[a]);ctx.lineTo(...points[b]);
+    ctx.strokeStyle="#55718f";ctx.lineWidth=2;ctx.stroke();
+  });
+
+  ctx.setLineDash([6,6]);
+  [[1,2],[3,4],[4,5]].forEach(([a,b])=>{
+    ctx.beginPath();ctx.moveTo(...points[a]);ctx.lineTo(...points[b]);
+    ctx.strokeStyle="#38bdf8";ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  points.forEach((point,index)=>{
+    ctx.beginPath();ctx.arc(...point,index?26:32,0,Math.PI*2);
+    ctx.fillStyle=index?"#244461":"#38bdf8";ctx.fill();
+    ctx.textAlign="center";ctx.font="14px Tahoma";ctx.fillStyle="#edf4ff";
+    ctx.fillText(index?orgs[index-1].name:"ศูนย์อำนวยการ",point,point+48);
+  });
+  ctx.textAlign="left";
+}
+
+/* -------------------- Scenario configuration -------------------- */
+
+$("scenarioCards").innerHTML = presets.map((scenario,index)=>`
+  <article class="card scenario">
+    <span class="badge">SCENARIO 0${index+1}</span>
+    <h3 style="margin-top:12px">${esc(scenario.name)}</h3>
+    <p class="muted">${esc(scenario.description)}</p>
+    <button data-preset="${index}">โหลดสถานการณ์</button>
+  </article>
+`).join("");
+
+document.querySelectorAll("[data-preset]").forEach(button =>
+  button.onclick=()=>{
+    loadScenario(presets[Number(button.dataset.preset)]);
+    toast("โหลดสถานการณ์แล้ว ปรับค่าและกดจำลองได้");
+  });
+
+const sliderIds=["workGrowth","staffCut","digitalGain","friction"];
+
+function updateLabels() {
+  sliderIds.forEach(id=>$(id+"Label").textContent=$(id).value);
+}
+sliderIds.forEach(id=>$(id).oninput=updateLabels);
+
+function loadScenario(scenario) {
+  currentPreset=clone(scenario);
+  $("caseName").value=scenario.name;
+  sliderIds.forEach(id=>$(id).value=scenario[id]);
+  $("structure").value=scenario.structure;
+  $("stress").value=scenario.stress;
+  $("externalFactor").value=scenario.external||"none";
+  updateLabels();
+}
+$("resetScenario").onclick=()=>loadScenario(currentPreset);
+
+function readScenario() {
+  return {
+    id:currentPreset.id,
+    name:$("caseName").value.trim()||currentPreset.name,
+    workGrowth:valueNumber("workGrowth",0,80),
+    staffCut:valueNumber("staffCut",0,30),
+    digitalGain:valueNumber("digitalGain",0,40),
+    friction:valueNumber("friction",0,35),
+    structure:$("structure").value,
+    stress:$("stress").value,
+    external:$("externalFactor").value,
+    seed:Math.trunc(valueNumber("seed",0,4294967295))
+  };
+}
+
+/* -------------------- Simulation engine -------------------- */
+
+/*
+  Group-based organizational simulation.
+  ไม่จำลองบุคลิกของบุคคล 10,000 คน
+  ฐานบุคลากรใช้แสดงการเชื่อมข้อมูลและจับคู่ทักษะ
+
+  capacity: กำลังบริการต่อรอบ
+  arrivals: งานเข้าแต่ละรอบ
+  backlog: งานค้างสะสม
+  friction: ส่วนกำลังบริการที่เสียไปกับการประสานงาน
+*/
+
+function simulate(config,plan,seed) {
+  const random=rng(seed);
+  const groups=orgs.map((org,index)=>({
+    index,people:org.people,
+    capacity:org.people*(1-config.staffCut/100),
+    demand:org.people*org.load*(1+config.workGrowth/100),
+    backlog:0
+  }));
+
+  let moved=0;
+  let retainedCapacity=0;
+
+  if(config.structure==="merge") {
+    groups.capacity+=groups.capacity;
+    groups.people+=groups.people;
+    groups.demand+=groups.demand;
+    groups.capacity=0;
+    groups.demand=0;
+  }
+
+  if(plan==="B") {
+    /*
+      ปล่อยเฉพาะกำลังที่เกินความต้องการประมาณการต้นทาง
+      และคิดประสิทธิภาพข้ามทักษะ 85%
+    */
+    const frictionFactor=1-config.friction/100;
+    const donors=groups.filter(group=>
+      group.capacity>0 &&
+      group.demand/Math.max(1,group.capacity*frictionFactor)<.95
+    ).sort((a,b)=>a.demand/a.capacity-b.demand/b.capacity);
+
+    const receivers=groups.filter(group=>
+      group.capacity>0 &&
+      group.demand/Math.max(1,group.capacity*frictionFactor)>1
+    ).sort((a,b)=>b.demand/b.capacity-a.demand/a.capacity);
+
+    donors.forEach(donor=>{
+      let spare=Math.max(0,
+        donor.capacity-donor.demand/(frictionFactor*.95)
+      );
+      receivers.forEach(receiver=>{
+        const need=Math.max(0,
+          receiver.demand/frictionFactor-receiver.capacity
+        );
+        const transfer=Math.min(spare,need/.85);
+        donor.capacity-=transfer;
+        receiver.capacity+=transfer*.85;
+        spare-=transfer;
+        moved+=transfer;
+        retainedCapacity+=transfer*.85;
+      });
+    });
+  }
+
+  let totalIn=0,totalDone=0,totalCapacity=0;
+  let burdenSum=0,delaySum=0,stressSum=0;
+  const timeline=[];
+
+  for(let tick=0;tick<12;tick++) {
+    const shock=tick>=4&&tick<=6;
+    const standardDemandShock=shock&&config.stress==="surge"?1.25:1;
+    const externalDemandShock=shock&&config.external==="disaster"?1.3:1;
+    const demandShock=standardDemandShock*externalDemandShock;
+    const capacityShock=shock&&config.stress==="absence"?.85:1;
+    const budgetShock=config.external==="budget"?.95:1;
+    const cyberShock=shock&&config.external==="cyber"&&plan==="C"?.55:1;
+    const inclusionFactor=config.external==="inclusion"&&plan==="C"?.65:1;
+
+    let periodIn=0,periodDone=0,periodCap=0;
+    let weightedBurden=0,highLoadDemand=0;
+
+    groups.forEach(group=>{
+      if(group.demand===0)return;
+
+      const arrival=group.demand*(.94+random()*.12)*demandShock;
+      const digital=plan==="C"?(1+config.digitalGain/100)*cyberShock*inclusionFactor:1;
+      const friction=config.friction/100*(plan==="C"?.6:1);
+      const transition=config.structure==="merge"&&
+        group.index===1&&tick<3?.9:1;
+
+      const capacity=group.capacity*digital*(1-friction)*
+        transition*capacityShock*budgetShock;
+
+      const done=Math.min(group.backlog+arrival,capacity);
+      group.backlog=Math.max(0,group.backlog+arrival-done);
+
+      const burden=arrival/Math.max(1,capacity);
+      weightedBurden+=burden*arrival;
+      if(burden>1.2)highLoadDemand+=arrival;
+
+      periodIn+=arrival;periodDone+=done;periodCap+=capacity;
+    });
+
+    const pending=groups.reduce((sum,group)=>sum+group.backlog,0);
+    totalIn+=periodIn;totalDone+=periodDone;totalCapacity+=periodCap;
+    burdenSum+=weightedBurden/Math.max(1,periodIn)*100;
+    delaySum+=pending/Math.max(1,periodCap);
+    stressSum+=highLoadDemand/Math.max(1,periodIn)*100;
+    timeline.push({
+      tick:tick+1,
+      backlog:Math.round(pending),
+      completion:periodDone/Math.max(1,periodIn)*100
+    });
+  }
+
+  const backlog=groups.reduce((sum,group)=>sum+group.backlog,0);
+
+  /*
+    ดัชนีต้นทุนสมมติ:
+    ไม่ใช่เงินบาท ไม่ใช่ผลประหยัดที่พิสูจน์แล้ว
+  */
+  const costIndex=100+
+    (plan==="B"?5:plan==="C"?config.digitalGain*.65:0)+
+    (config.structure==="merge"?8:0);
+
+  return {
+    completion:totalDone/Math.max(1,totalIn)*100,
+    backlog,
+    load:burdenSum/12,
+    delay:delaySum/12,
+    overloaded:stressSum/12,
+    costIndex,
+    moved,retainedCapacity,
+    totalIn,totalDone,totalCapacity,
+    timeline
+  };
+}
+
+function summary(rows,key) {
+  const values=rows.map(row=>row[key]);
+  return {
+    mean:average(values),
+    min:Math.min(...values),
+    max:Math.max(...values)
+  };
+}
+
+const metricKeys=[
+  "completion","backlog","load","delay",
+  "overloaded","costIndex","moved"
+];
+
+async function runSimulation() {
+  if(busy)return;
+  busy=true;$("runButton").disabled=true;
+  $("simLog").textContent="";
+  $("progress").style.width="0%";
+
+  try {
+    const config=readScenario();
+    const plans=[];
+
+    for(const [index,plan] of ["A","B","C"].entries()) {
+      const rows=[];
+      for(let repetition=0;repetition<8;repetition++) {
+        /*
+          แผนแต่ละแผนใช้ seed รอบเดียวกัน
+          เพื่อลดผลจากความต่างของเหตุการณ์สุ่มในการเปรียบเทียบ
+        */
+        rows.push(simulate(config,plan,
+          (config.seed+repetition*104729)>>>0));
+
+        $("simLog").textContent=
+          "DATA: snapshot ข้อมูลสมมติ 6 หน่วยงาน\n"+
+          "ENGINE: group-based organizational simulation\n"+
+          `PLAN ${plan}: รอบ ${repetition+1}/8\n`+
+          `STRUCTURE: ${config.structure}\n`+
+          `STRESS: ${config.stress}\n`+
+          "ผลยังไม่ใช่คำสั่งปรับองค์การ";
+
+        $("progress").style.width=
+          ((index*8+repetition+1)/24*100)+"%";
+        await wait(25);
+      }
+
+      const metrics={};
+      metricKeys.forEach(key=>metrics[key]=summary(rows,key));
+      plans.push({plan,metrics,rows});
+    }
+
+    const best=[...plans].sort((a,b)=>
+      b.metrics.completion.mean-a.metrics.completion.mean);
+
+    lastRun={
+      id:uid(),at:new Date().toISOString(),
+      modelVersion:"group-demo-1.0",
+      dataVersion:"synthetic-org-1.0",
+      config,plans,
+    bestByCompletion:best[0].plan,
+      disclaimer:
+        "Synthetic organizational simulation; uncalibrated; no personnel or health assessment"
+    };
+
+    workspace.history.unshift({
+      id:lastRun.id,name:config.name,at:lastRun.at,best:best.plan
+    });
+    workspace.history=workspace.history.slice(0,50);
+    audit("รัน Scenario: "+config.name);
+    persist();renderWorkspace();renderResults();renderActionContext();
+
+    $("simLog").textContent+="\nเสร็จสิ้น: 24 การรัน\nรอผู้ใช้ตรวจสอบผลและข้อจำกัด";
+    $("results").scrollIntoView({behavior:"smooth",block:"start"});
+  } catch(error) {
+    $("simLog").textContent="เกิดข้อผิดพลาด: "+error.message;
+    console.error(error);
+  } finally {
+    busy=false;$("runButton").disabled=false;
+  }
+}
+$("runButton").onclick=runSimulation;
+
+/* -------------------- Results -------------------- */
+
+function renderResults() {
+  const names={
+    A:"โครงสร้างการทำงานเดิม",
+    B:"จัดสรรกำลังทำงานข้ามหน่วย",
+    C:"ดิจิทัลและลดการส่งต่อ"
+  };
+
+  const range=value=>
+    `${fmt(value.mean)} <small>(${fmt(value.min)}–${fmt(value.max)})</small>`;
+
+  $("results").innerHTML=`
+    <div class="card">
+      <div class="split-title">
+        <h2>ผลจำลอง: ${esc(lastRun.config.name)}</h2>
+        <span class="badge yellow">ข้อมูลสมมติ · ต้องตรวจสอบก่อนใช้</span>
+      </div>
+
+      <div class="grid three">
+        ${lastRun.plans.map(plan=>`
+          <div class="card result-plan ${
+            plan.plan===lastRun.bestByCompletion?"best":""
+          }">
+            <span class="badge">PLAN ${plan.plan}</span>
+            <h3 class="gap">${names[plan.plan]}</h3>
+            <div class="metric">${fmt(plan.metrics.completion.mean)}%</div>
+            <small>งานที่เสร็จจากงานเข้ารวม 12 รอบ</small>
+            <p class="gap">
+              งานค้าง: <b>${fmt(plan.metrics.backlog.mean)}</b> หน่วย<br>
+              ภาระงานเฉลี่ย: <b>${fmt(plan.metrics.load.mean)}%</b><br>
+              รอจากงานค้าง: <b>${fmt(plan.metrics.delay.mean)}</b> รอบ<br>
+              ดัชนีต้นทุน: <b>${fmt(plan.metrics.costIndex.mean)}</b>
+            </p>
+            <button data-select-plan="${plan.plan}">นำแผนไป Action Center →</button>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="grid two gap">
+        <div>
+          <h3>เปรียบเทียบความสามารถส่งมอบงาน</h3>
+          <canvas id="comparisonChart" width="760" height="300"></canvas>
+        </div>
+        <div>
+          <h3>งานค้างสะสม · ค่าเฉลี่ย 8 การรัน</h3>
+          <canvas id="backlogChart" width="760" height="300"></canvas>
+        </div>
+      </div>
+
+      <div class="table-wrap gap">
+        <table>
+          <thead><tr>
+            <th>แผน</th><th>งานเสร็จ %</th><th>ภาระงาน %</th>
+            <th>เวลารอ / รอบ</th><th>งานค้าง</th>
+          </tr></thead>
+          <tbody>
+            ${lastRun.plans.map(plan=>`
+              <tr>
+                <td>${plan.plan}</td>
+                <td>${range(plan.metrics.completion)}</td>
+                <td>${range(plan.metrics.load)}</td>
+                <td>${range(plan.metrics.delay)}</td>
+                <td>${range(plan.metrics.backlog)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="notice gap">
+        แผน ${lastRun.bestByCompletion} มีงานเสร็จมากที่สุดภายใต้สมมติฐานนี้
+        แต่ยังไม่ใช่แผนที่ดีที่สุดทุกมิติ
+        ต้องพิจารณาต้นทุนจริง คุณภาพบริการ ทักษะ ความเป็นธรรม
+        และข้อกฎหมายเพิ่มเติม<br>
+        วงเล็บเป็น min–max จากการรัน ไม่ใช่ช่วงความเชื่อมั่นทางสถิติ
+      </div>
+
+      ${lastRun.config.id==="chiangrai"?`
+        <div class="notice">
+          กรณีเชียงรายจำลองความพร้อมขององค์การและการประสานงานเท่านั้น
+          ไม่สร้างผลตรวจสารหนู ไม่จำลองการแพร่กระจายมลพิษ
+          และไม่รับรองความปลอดภัยของน้ำ
+        </div>
+      `:""}
+
+      <details>
+        <summary>ตรวจที่มาและความหมายของผล</summary>
+        <p class="muted">
+          รุ่นโมเดล: ${esc(lastRun.modelVersion)}<br>
+          รุ่นข้อมูล: ${esc(lastRun.dataVersion)}<br>
+          Seed: ${lastRun.config.seed}<br>
+          งานและกำลังบริการเป็นหน่วยสมมติ ไม่ใช่จำนวนคำร้องหรือจุดตรวจจริง<br>
+          ดัชนีต้นทุนมีค่าฐาน 100 ไม่ใช่งบประมาณเป็นบาท<br>
+          แผน B โยกกำลังบริการ ไม่ได้คำนวณรายชื่อผู้ถูกย้ายจริง<br>
+          เวลารอเป็นค่าประมาณจากงานค้างต่อกำลังบริการ
+          ไม่ใช่เวลารอรายบุคคล
+        </p>
+      </details>
+
+      <div class="actions">
+        <button id="exportRun">ดาวน์โหลดผล JSON</button>
+        <button id="printRun">พิมพ์หน้าผลจำลอง</button>
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll("[data-select-plan]").forEach(button=>{
+    button.onclick=()=>{
+      $("trialPlan").value=button.dataset.selectPlan;
+      $("trialName").value=lastRun.config.name;
+      if(lastRun.config.id==="chiangrai") {
+        $("gigName").value="ทีมร่วมติดตามคุณภาพน้ำจังหวัดเชียงราย";
+        $("gigSkill").value="ประสานงาน";
+      }
+      openPage("operations");
+    };
+  });
+
+  $("exportRun").onclick=()=>downloadJSON(lastRun,"org-twin-run.json");
+  $("printRun").onclick=()=>window.print();
+
+  drawBars("comparisonChart",
+    lastRun.plans.map(plan=>({
+      label:"แผน "+plan.plan,value:plan.metrics.completion.mean
+    })),100,"% งานเสร็จ");
+
+  drawBacklog();
+}
+
+function drawBars(id,data,max,title) {
+  const canvas=$(id),ctx=canvas.getContext("2d");
+  const colors=["#38bdf8","#34d399","#fbbf24","#a78bfa"];
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#9fb1ca";ctx.font="15px Tahoma";
+  ctx.fillText(title,20,26);
+  const bottom=canvas.height-48,height=canvas.height-95;
+  const step=(canvas.width-90)/data.length;
+
+  data.forEach((item,index)=>{
+    const x=55+index*step,w=step*.56;
+    const h=clamp(item.value/Math.max(1,max),0,1)*height;
+    ctx.fillStyle=colors[index%colors.length];
+    ctx.fillRect(x,bottom-h,w,h);
+    ctx.fillStyle="#edf4ff";ctx.font="15px Tahoma";
+    ctx.fillText(fmt(item.value),x,bottom-h-9);
+    ctx.fillText(item.label,x,bottom+28);
+  });
+}
+
+function drawBacklog() {
+  const canvas=$("backlogChart"),ctx=canvas.getContext("2d");
+  const colors=["#38bdf8","#34d399","#fbbf24"];
+  const lines=lastRun.plans.map(plan=>
+    Array.from({length:12},(_,tick)=>
+      average(plan.rows.map(row=>row.timeline[tick].backlog))
+    ));
+  const max=Math.max(1,...lines.flat())*1.15;
+  const left=65,right=canvas.width-25,top=40,bottom=canvas.height-45;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  for(let i=0;i<=3;i++) {
+    const y=bottom-i*(bottom-top)/3;
+    ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);
+    ctx.strokeStyle="#253b54";ctx.stroke();
+    ctx.fillStyle="#9fb1ca";ctx.font="12px Tahoma";
+    ctx.fillText(fmt(max*i/3),5,y+4);
+  }
+
+  lines.forEach((line,index)=>{
+    ctx.beginPath();
+    line.forEach((value,tick)=>{
+      const x=left+tick*(right-left)/11;
+      const y=bottom-value/max*(bottom-top);
+      tick?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    });
+    ctx.strokeStyle=colors[index];ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle=colors[index];ctx.font="14px Tahoma";
+    ctx.fillText("แผน "+["A","B","C"][index],left+index*95,22);
+  });
+
+  ctx.fillStyle="#9fb1ca";
+  ctx.fillText("รอบ 1",left,bottom+27);
+  ctx.fillText("รอบ 12",right-45,bottom+27);
+}
+
+/* -------------------- AI rule builder -------------------- */
+
+$("aiExample").onclick=()=>{
+  $("aiPrompt").value=
+    "จังหวัดเชียงรายต้องเพิ่มทีมติดตามคุณภาพน้ำ "+
+    "งานเพิ่ม 40% ขาดคน 10% ดิจิทัล 25% ประสานงาน 20%";
+};
+
+function extractPercent(text,pattern,fallback,max) {
+  const match=text.match(pattern);
+  return {
+    value:match?clamp(Number(match),0,max):fallback,
+    detected:!!match
+  };
+}
+
+$("generateAI").onclick=()=>{
+  const text=$("aiPrompt").value.trim();
+  if(text.length<10){toast("กรุณาระบุรายละเอียดอย่างน้อย 10 ตัวอักษร");return}
+
+  const isWater=/เชียงราย|คุณภาพน้ำ|สารหนู|เก็บตัวอย่าง/.test(text);
+  const base=clone(isWater?presets:presets);
+
+  const parsed={
+    workGrowth:extractPercent(text,/(?:งานเพิ่ม|ภารกิจเพิ่ม)\s*(\d+)\s*%/,
+      base.workGrowth,80),
+    staffCut:extractPercent(text,/(?:ขาดคน|ลดคน|ลดกำลังคน)\s*(\d+)\s*%/,
+      base.staffCut,30),
+    digitalGain:extractPercent(text,/(?:ดิจิทัล|ออนไลน์)\s*(\d+)\s*%/,
+      base.digitalGain,40),
+    friction:extractPercent(text,/ประสานงาน\s*(\d+)\s*%/,
+      base.friction,35)
+  };
+
+  generatedScenario={
+    ...base,
+    name:"AI จำลอง: "+text.slice(0,120),
+    structure:/รวมทีม|รวมหน่วยงาน/.test(text)?"merge":base.structure
+  };
+
+  Object.entries(parsed).forEach(([key,item])=>
+    generatedScenario[key]=item.value);
+
+  const labels={
+    workGrowth:"งานเพิ่ม",staffCut:"กำลังคนไม่พร้อม",
+    digitalGain:"ดิจิทัล",friction:"ความล่าช้าประสานงาน"
+  };
+
+  $("aiOutput").className="";
+  $("aiOutput").innerHTML=`
+    <p>${esc(text)}</p>
+    <ul>
+      ${Object.entries(parsed).map(([key,item])=>`
+        <li>${labels[key]}: <b>${item.value}%</b>
+        <small>— ${item.detected?"อ่านจากข้อความและจำกัดช่วง":"ใช้ค่าตั้งต้น"}</small></li>
+      `).join("")}
+    </ul>
+    <p class="muted">
+      แม่แบบ: ${esc(base.name)}<br>
+      โครงสร้าง: ${generatedScenario.structure==="merge"?"รวมทีม":"คงเดิม"}<br>
+      ไม่ได้สร้างตัวเลขผลกระทบ ผลต้องคำนวณใน Simulation Engine
+    </p>
+  `;
+  $("applyAI").hidden=false;
+};
+
+$("applyAI").onclick=()=>{
+  if(!generatedScenario)return;
+  loadScenario(generatedScenario);
+  openPage("simulation");
+};
+
+/* -------------------- Action Center -------------------- */
+
+$("gigSkill").innerHTML=skillNames.map(skill=>
+  `<option>${esc(skill)}</option>`).join("");
+
+function renderActionContext() {
+  if(!lastRun)return;
+  $("actionContext").textContent=
+    "เชื่อมผลจำลอง: "+lastRun.config.name+
+    " | งานเสร็จสูงสุดในแบบจำลอง: แผน "+lastRun.bestByCompletion+
+    " | การดำเนินการต่อไปเป็นร่างทดลองและต้องได้รับอนุมัติ";
+}
+
+$("findPeople").onclick=()=>{
+  const skill=$("gigSkill").value;
+  selectedCandidates=personnel
+    .filter(person=>person.skills.includes(skill)&&person.availability>=60)
+    .sort((a,b)=>b.availability-a.availability||a.id-b.id)
+    .slice(0,8);
+
+  $("candidateList").innerHTML=selectedCandidates.map(person=>`
+    <p>
+      <b>Agent #${person.id}</b> · ${esc(orgs[person.department].name)}<br>
+      ${person.skills.map(skill=>`<span class="tag">${esc(skill)}</span>`).join("")}
+      <small>กำลังว่างสมมติ ${person.availability}%</small>
+    </p>
+  `).join("");
+};
+
+$("confirmGig").onclick=()=>{
+  const name=$("gigName").value.trim();
+  if(!lastRun){toast("รัน Scenario ก่อน เพื่อเชื่อมภารกิจกับผลจำลอง");return}
+  if(!name||!selectedCandidates.length){
+    toast("ระบุชื่อภารกิจและค้นหาผู้มีทักษะก่อน");return;
+  }
+  if(!confirm("บันทึกภารกิจทดลองและประสบการณ์จำลอง ไม่มีผลมอบหมายงานจริง?"))return;
+
+  workspace.missions.unshift({
+    id:uid(),name,runId:lastRun.id,
+    members:clone(selectedCandidates),
+    at:new Date().toISOString()
+  });
+  selectedCandidates=[];
+  $("candidateList").innerHTML="";
+  audit("บันทึก Gov-Gig ทดลอง: "+name);
+  persist();renderWorkspace();toast("บันทึกประสบการณ์จำลองแล้ว");
+};
+
+$("sandboxForm").onsubmit=event=>{
+  event.preventDefault();
+  if(!lastRun){toast("ต้องมีผลจำลองก่อนบันทึกแผน");return}
+
+  workspace.trials.unshift({
+    id:uid(),name:$("trialName").value.trim(),
+    plan:$("trialPlan").value,
+    kpi:$("trialKPI").value.trim(),
+    stop:$("trialStop").value.trim(),
+    runId:lastRun.id,
+    at:new Date().toISOString(),
+    status:"draft-no-legal-effect"
+  });
+  audit("บันทึกร่าง Sandbox: "+$("trialName").value.trim());
+  persist();renderWorkspace();toast("บันทึกร่างทดลอง ไม่มีผลอนุมัติทางกฎหมาย");
+};
+
+document.querySelectorAll("[data-nudge]").forEach(button=>{
+  button.onclick=()=>{
+    const target=$("trialStop");
+    const line="Nudge: "+button.dataset.nudge;
+    if(!target.value.includes(line)) {
+      target.value=(target.value.trim()?target.value.trim()+"\n":"")+line;
+      toast("เพิ่มแนวทาง Nudge ในร่างแผนแล้ว");
+    }
+  };
+});
+
+function projectWorkforce() {
+  const exit=valueNumber("annualExit",0,30)/100;
+  const hire=Math.round(valueNumber("annualHire",0,5000));
+  let count=10000;
+  const data=[{label:"ตั้งต้น",value:count}];
+
+  for(let year=1;year<=3;year++) {
+    count=Math.round(count*(1-exit)+hire);
+    data.push({label:"ปี "+year,value:count});
+  }
+
+  drawBars("workforceChart",data,
+    Math.max(...data.map(item=>item.value))*1.15,"กำลังคนสมมติ");
+
+  $("projectionText").innerHTML=`
+    <p>ปีที่ 3: <b>${fmt(count)} คน</b>
+    · ต่างจากตั้งต้น ${fmt(count-10000)} คน</p>
+    <small>สูตร: จำนวนปีถัดไป = จำนวนปัจจุบัน × (1 − อัตราออก) + รับใหม่</small>
+  `;
+}
+$("projectButton").onclick=projectWorkforce;
+
+/* -------------------- Feedback and audit -------------------- */
+
+$("feedbackForm").onsubmit=event=>{
+  event.preventDefault();
+  const text=$("feedbackText").value.trim();
+  if(!text)return;
+  workspace.feedback.unshift({
+    id:uid(),text,friction:valueNumber("proposedFriction",0,35),
+    runId:lastRun?.id||null,at:new Date().toISOString()
+  });
+  audit("บันทึก Feedback");
+  persist();renderWorkspace();toast("บันทึกแล้ว ยังไม่เปลี่ยนพารามิเตอร์");
+};
+
+$("approveCalibration").onclick=()=>{
+  const friction=valueNumber("proposedFriction",0,35);
+  if(!confirm("ใช้ค่าความล่าช้า "+friction+"% สำหรับการจำลองครั้งถัดไป?"))return;
+  $("friction").value=friction;updateLabels();
+  audit("ยืนยันพารามิเตอร์ความล่าช้าใหม่: "+friction+"%");
+  persist();renderWorkspace();toast("ปรับค่ารันครั้งถัดไป ผลเดิมไม่ถูกแก้ไข");
+};
+
+function downloadJSON(data,filename) {
+  const blob=new Blob([JSON.stringify(data,null,2)],{
+    type:"application/json;charset=utf-8"
+  });
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;link.download=filename;
+  document.body.appendChild(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+$("downloadWorkspace").onclick=()=>downloadJSON({
+  exportedAt:new Date().toISOString(),
+  workspace,
+  lastRun,
+  disclaimer:"Local demo; synthetic data; no legal or operational effect"
+},"org-twin-workspace.json");
+
+$("clearWorkspace").onclick=()=>{
+  if(!confirm("ล้างประวัติ แผนทดลอง Wallet และ Feedback ทั้งหมด?"))return;
+  workspace={history:[],trials:[],missions:[],feedback:[],audit:[]};
+  lastRun=null;selectedCandidates=[];
+  $("results").innerHTML="";
+  $("candidateList").innerHTML="";
+  $("actionContext").textContent="ยังไม่มีผลจำลอง";
+  persist();renderWorkspace();toast("ล้างข้อมูลต้นแบบแล้ว");
+};
+
+/* -------------------- Initialize -------------------- */
+
+function updateClock() {
+  $("clock").textContent=new Date().toLocaleString("th-TH",{
+    dateStyle:"full",timeStyle:"short"
+  });
+}
+updateClock();setInterval(updateClock,30000);
+loadScenario(presets[0]);
+renderWorkspace();
+drawCity();
+drawGraph();
+projectWorkforce();
+</script>
+</body>
+</html>
