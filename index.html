@@ -469,6 +469,21 @@ dialog::backdrop{background:#0009}
 
       <h3 class="gap">เลือกแผนเพื่อเปรียบเทียบ</h3>
       <div id="planChoices" class="plan-picker"></div>
+      <div class="grid two gap">
+        <div class="card">
+          <h3>แผน A · ปรับขั้นตอนภายในหน่วย</h3>
+          <p class="muted">เพิ่มกำลังจากการฝึก คู่มือ หรือปรับ workflow โดยยังทำงานในหน่วยงานเดิม</p>
+          <label for="planAProcess">กำลังบริการที่เพิ่มจากการปรับขั้นตอน: <b id="planAProcessLabel">0</b>%</label>
+          <input id="planAProcess" type="range" min="0" max="100" value="0">
+        </div>
+        <div class="card">
+          <h3>แผน B · จัดสรรกำลังข้ามหน่วย</h3>
+          <p class="muted">ทดลองจัดสรรกำลังบริการระหว่างหน่วยงาน พร้อมเปรียบเทียบผลต่อหน่วยต้นทางและปลายทาง</p>
+          <label for="planBTransfer">สัดส่วนกำลังบริการที่จัดสรรข้ามหน่วย: <b id="planBTransferLabel">10</b>%</label>
+          <input id="planBTransfer" type="range" min="0" max="100" value="10">
+        </div>
+      </div>
+      <p class="muted">แผน C ใช้ค่าดิจิทัลด้านบน · ตั้งค่า 0–100% เพื่อทดลองสมมติฐานและกรณีขอบเขต</p>
       <div class="card gap">
         <h3>สร้างแผนทางเลือกเอง</h3>
         <p class="muted">กำหนดวิธีจัดกำลังคนและตัวช่วย แล้วเปรียบเทียบผลด้วยสมมติฐานเดียวกัน</p>
@@ -497,7 +512,7 @@ dialog::backdrop{background:#0009}
 
       <h3 class="gap">แผนที่เปรียบเทียบ</h3>
       <ul>
-        <li><b>A:</b> จัดสรรและทำงานแบบเดิม</li>
+        <li><b>A:</b> ปรับขั้นตอนและคู่มือภายในหน่วยงานเดิม</li>
         <li><b>B:</b> ย้ายกำลังทำงานจากหน่วยเบาไปหน่วยหนัก
           โดยยังรักษาความสามารถหน่วยต้นทาง</li>
         <li><b>C:</b> ไม่ย้ายคน แต่เพิ่มกำลังบริการดิจิทัล
@@ -1229,7 +1244,7 @@ $("customScenarioForm").onsubmit=event=>{
   workspace.scenarios.unshift(scenario);persist();renderScenarios();loadScenario(scenario);event.target.reset();openPage("simulation");toast("บันทึกสถานการณ์ในเครื่องนี้แล้ว");
 };
 
-const sliderIds=["workGrowth","staffCut","digitalGain","friction"];
+const sliderIds=["workGrowth","staffCut","digitalGain","friction","planAProcess","planBTransfer"];
 
 function updateLabels() {
   sliderIds.forEach(id=>$(id+"Label").textContent=$(id).value);
@@ -1240,6 +1255,8 @@ function loadScenario(scenario) {
   currentPreset=clone(scenario);
   $("caseName").value=scenario.name;
   sliderIds.forEach(id=>$(id).value=scenario[id]);
+  $("planAProcess").value=0;
+  $("planBTransfer").value=10;
   $("structure").value=scenario.structure;
   $("stress").value=scenario.stress;
   $("externalFactor").value=scenario.external||"none";
@@ -1261,6 +1278,8 @@ function readScenario() {
     staffCut:valueNumber("staffCut",0,100),
     digitalGain:valueNumber("digitalGain",0,100),
     friction:valueNumber("friction",0,100),
+    planAProcess:valueNumber("planAProcess",0,100),
+    planBTransfer:valueNumber("planBTransfer",0,100),
     structure:$("structure").value,
     stress:$("stress").value,
     external:$("externalFactor").value,
@@ -1269,7 +1288,7 @@ function readScenario() {
 }
 
 const basePlans=[
-  {id:"A",name:"ทำงานตามเดิม",transferPct:0,digitalGain:0,trainingGain:0,coordinationReduction:0,costAdd:0},
+  {id:"A",name:"ปรับขั้นตอนภายในหน่วย",transferPct:0,digitalGain:0,trainingGain:0,coordinationReduction:0,costAdd:0},
   {id:"B",name:"จัดสรรกำลังข้ามหน่วย",transferPct:10,digitalGain:0,trainingGain:0,coordinationReduction:0,costAdd:5},
   {id:"C",name:"ดิจิทัลและลดการส่งต่อ",transferPct:0,digitalGain:null,trainingGain:0,coordinationReduction:40,costAdd:0}
 ];
@@ -1456,7 +1475,9 @@ async function runSimulation() {
   try {
     const config=readScenario();
     const plans=[];
-    const selected=selectedPlans();
+    const selected=selectedPlans().map(plan=>plan.id==="A"
+      ? {...plan,trainingGain:config.planAProcess}
+      : plan.id==="B"?{...plan,transferPct:config.planBTransfer}:plan);
     if(!selected.length){toast("เลือกอย่างน้อยหนึ่งแผนก่อนจำลอง");return}
 
     for(const [index,plan] of selected.entries()) {
