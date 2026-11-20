@@ -133,6 +133,13 @@ th{color:var(--muted);font-size:12px;font-weight:normal}
 }
 .result-plan{border-top:3px solid var(--accent)}
 .result-plan.best{border-top-color:var(--green)}
+.map-region{cursor:pointer;stroke:#7dd3fc;stroke-width:2;fill:#17405a;transition:.15s}
+.map-region:hover,.map-region.selected{fill:#38bdf8;stroke:#e0f2fe}
+.map-label{fill:#edf4ff;font:700 15px Tahoma;pointer-events:none}
+.map-sub{fill:#b8cbe2;font:12px Tahoma;pointer-events:none}
+.step{border-left:3px solid var(--accent);padding:9px 12px;background:#102037;border-radius:0 9px 9px 0;margin:8px 0}
+.province-chip{display:inline-flex;gap:6px;align-items:center;margin:4px}
+.plan-picker{display:flex;flex-wrap:wrap;gap:8px}
 ul{padding-left:20px}li{margin-bottom:7px}
 footer{margin-top:24px;color:var(--muted);font-size:11px}
 #toast{
@@ -299,6 +306,7 @@ dialog::backdrop{background:#0009}
   <p class="muted">
     แยกสายรายงานออกจากการประสานงาน และเชื่อมกับทักษะและภารกิจ
   </p>
+  <div class="step"><b>วิธีอ่านหน้านี้:</b> ดูขนาดและสีของหน่วยงาน → คลิกอาคารเพื่อดูข้อมูลสมมติ → ใช้ตารางทบทวนกำลังคนและทักษะตั้งต้น</div>
 
   <div class="grid two">
     <div class="card">
@@ -344,7 +352,46 @@ dialog::backdrop{background:#0009}
   <p class="muted">
     จำลองระดับกลุ่มหน่วยงาน 12 รอบเวลา × 8 การรันซ้ำต่อแผน
   </p>
-  <div id="scenarioCards" class="grid three"></div>
+  <div class="card gap">
+    <h2>แผนที่ภารกิจตัวอย่างในประเทศไทย</h2>
+    <p class="muted">คลิกภูมิภาคเพื่อดูจังหวัดและโจทย์ตัวอย่าง แผนที่นี้เป็นภาพสรุปภูมิภาค ไม่ใช่แผนที่เขตการปกครองที่แม่นยำ ข้อมูลและภารกิจเป็นตัวอย่างสมมติ</p>
+    <div class="grid two">
+      <svg id="thailandMap" viewBox="0 0 620 430" role="img" aria-label="แผนที่ตัวอย่างภารกิจตามภูมิภาคของประเทศไทย">
+        <path d="M180 20 L260 32 L280 70 L248 94 L272 128 L240 155 L260 183 L236 210 L250 240 L224 268 L240 298 L214 330 L224 363 L198 402 L177 390 L183 358 L163 330 L173 299 L150 270 L169 242 L145 213 L167 182 L145 153 L166 124 L144 94 L171 70 Z" fill="#0c1728" stroke="#304865" stroke-width="3"/>
+        <polygon class="map-region" data-region="north" points="178,24 254,36 270,72 239,91 259,119 225,137 177,123 150,94 174,69"/><text class="map-label" x="192" y="79">เหนือ</text><text class="map-sub" x="186" y="97">เชียงราย · เชียงใหม่</text>
+        <polygon class="map-region" data-region="northeast" points="258,123 321,105 370,127 358,170 322,196 263,178 240,153"/><text class="map-label" x="286" y="148">อีสาน</text><text class="map-sub" x="271" y="165">ขอนแก่น · อุบลฯ</text>
+        <polygon class="map-region" data-region="central" points="169,128 224,137 258,178 241,209 258,236 223,259 174,240 149,213 170,182 147,153"/><text class="map-label" x="178" y="196">กลาง</text><text class="map-sub" x="170" y="214">กรุงเทพฯ · อยุธยา</text>
+        <polygon class="map-region" data-region="east" points="259,181 321,198 343,231 312,258 263,237 241,209"/><text class="map-label" x="272" y="224">ตะวันออก</text><text class="map-sub" x="270" y="241">ชลบุรี · ระยอง</text>
+        <polygon class="map-region" data-region="west" points="149,216 175,242 222,260 208,293 172,308 148,277 128,250"/><text class="map-label" x="144" y="269">ตะวันตก</text><text class="map-sub" x="135" y="286">กาญจนบุรี</text>
+        <polygon class="map-region" data-region="south" points="173,307 211,300 220,331 201,358 217,382 197,409 177,390 182,359 162,331"/><text class="map-label" x="218" y="347">ใต้</text><text class="map-sub" x="218" y="365">สงขลา · ภูเก็ต</text>
+      </svg>
+      <div>
+        <div id="regionDetail" class="empty">เลือกภูมิภาคบนแผนที่เพื่อดูโจทย์ภารกิจและสร้างสถานการณ์</div>
+        <div id="provinceChoices" class="gap"></div>
+      </div>
+    </div>
+  </div>
+  <div class="notice gap"><b>วิธีใช้ห้องจำลอง:</b><div class="step">1. เลือกภูมิภาค/จังหวัดเพื่อโหลดโจทย์ตัวอย่าง หรือสร้างสถานการณ์เอง</div><div class="step">2. ปรับสมมติฐานงาน คน ทักษะ และแรงกดดัน</div><div class="step">3. เลือกแผน A/B/C และแผนที่ทีมสร้างเอง แล้วกดจำลอง</div><div class="step">4. อ่านกราฟและข้อจำกัด ก่อนร่างแผนทดลอง โดยผลไม่มีอำนาจสั่งย้ายคนจริง</div></div>
+  <div class="card gap">
+    <h2>สร้างสถานการณ์ของทีม</h2>
+    <p class="muted">กรอกสมมติฐานเพื่อเพิ่มเป็นการ์ดสถานการณ์ในเครื่องนี้ สถานการณ์ที่สร้างไม่เปลี่ยนข้อมูลสาธารณะหรือข้อมูลราชการ</p>
+    <form id="customScenarioForm" class="grid two">
+      <div><label for="customScenarioName">ชื่อสถานการณ์</label><input id="customScenarioName" maxlength="120" required placeholder="เช่น เปิดศูนย์ช่วยเหลือประชาชนช่วงน้ำท่วม"></div>
+      <div><label for="customScenarioRegion">พื้นที่</label><select id="customScenarioRegion"><option value="central">ภาคกลาง</option><option value="north">ภาคเหนือ</option><option value="northeast">ภาคอีสาน</option><option value="east">ภาคตะวันออก</option><option value="west">ภาคตะวันตก</option><option value="south">ภาคใต้</option></select></div>
+      <div><label for="customWork">งานเพิ่ม (%)</label><input id="customWork" type="number" min="0" max="80" value="25"></div>
+      <div><label for="customStaff">กำลังคนไม่พร้อม (%)</label><input id="customStaff" type="number" min="0" max="30" value="5"></div>
+      <div><label for="customDigital">กำลังบริการดิจิทัลที่เพิ่ม (%)</label><input id="customDigital" type="number" min="0" max="40" value="15"></div>
+      <div><label for="customFriction">ความล่าช้าประสานงาน (%)</label><input id="customFriction" type="number" min="0" max="35" value="15"></div>
+      <div><label for="customExternal">แรงกดดันภายนอก</label><select id="customExternal"><option value="none">ไม่มี</option><option value="disaster">ภัยพิบัติ</option><option value="budget">งบประมาณตึงตัว</option><option value="cyber">ระบบดิจิทัลขัดข้อง</option><option value="inclusion">การเข้าถึงดิจิทัล</option></select></div>
+      <div class="actions"><button class="primary" type="submit">＋ เพิ่มสถานการณ์</button></div>
+    </form>
+  </div>
+    <div class="grid two gap">
+      <div><label for="scenarioSearch">ค้นหาสถานการณ์ (ภารกิจ หน่วยงาน หรือผู้เกี่ยวข้อง)</label><input id="scenarioSearch" type="search" placeholder="เช่น น้ำท่วม, สาธารณสุข, ข้อมูลข้ามหน่วยงาน"></div>
+      <div><label for="scenarioCategory">กรองตามประเด็น</label><select id="scenarioCategory"><option value="all">ทุกประเด็น · 50 สถานการณ์</option><option value="บริการประชาชน">บริการประชาชน</option><option value="ภัยพิบัติและสิ่งแวดล้อม">ภัยพิบัติและสิ่งแวดล้อม</option><option value="สุขภาพและสังคม">สุขภาพและสังคม</option><option value="เศรษฐกิจและพื้นที่">เศรษฐกิจและพื้นที่</option><option value="กำลังคนและโครงสร้าง">กำลังคนและโครงสร้าง</option><option value="ข้อมูลและธรรมาภิบาล">ข้อมูลและธรรมาภิบาล</option></select></div>
+    </div>
+    <p id="scenarioCount" class="muted" aria-live="polite"></p>
+    <div id="scenarioCards" class="grid three"></div>
 
   <div class="grid two gap">
     <div class="card">
@@ -400,8 +447,23 @@ dialog::backdrop{background:#0009}
       <input id="seed" type="number" min="0" max="4294967295"
         step="1" value="2026">
 
+      <h3 class="gap">เลือกแผนเพื่อเปรียบเทียบ</h3>
+      <div id="planChoices" class="plan-picker"></div>
+      <div class="card gap">
+        <h3>สร้างแผนทางเลือกเอง</h3>
+        <p class="muted">กำหนดวิธีจัดกำลังคนและตัวช่วย แล้วเปรียบเทียบผลด้วยสมมติฐานเดียวกัน</p>
+        <form id="customPlanForm" class="grid two">
+          <div><label for="customPlanName">ชื่อแผน</label><input id="customPlanName" maxlength="80" required placeholder="เช่น ทีมเคลื่อนที่เร็วข้ามจังหวัด"></div>
+          <div><label for="planTransfer">สัดส่วนกำลังบริการที่จัดสรรข้ามหน่วย (%)</label><input id="planTransfer" type="number" min="0" max="30" value="10"></div>
+          <div><label for="planDigital">เพิ่มกำลังบริการดิจิทัล (%)</label><input id="planDigital" type="number" min="0" max="50" value="10"></div>
+          <div><label for="planTraining">เพิ่มกำลังจากการฝึก/คู่มือ (%)</label><input id="planTraining" type="number" min="0" max="30" value="5"></div>
+          <div><label for="planCoordination">ลดเวลาประสานงาน (%)</label><input id="planCoordination" type="number" min="0" max="80" value="20"></div>
+          <div class="actions"><button class="primary" type="submit">＋ บันทึกแผนของฉัน</button></div>
+        </form>
+        <div id="customPlanList" class="gap"></div>
+      </div>
       <div class="actions">
-        <button id="runButton" class="primary">▶ จำลองแผน A / B / C</button>
+        <button id="runButton" class="primary">▶ จำลองแผนที่เลือก</button>
         <button id="resetScenario">คืนค่าตัวอย่าง</button>
       </div>
     </div>
@@ -448,6 +510,7 @@ dialog::backdrop{background:#0009}
 <!-- AI -->
 <section id="ai" class="view">
   <h1>AI Scenario Builder</h1>
+  <div class="step"><b>ขั้นตอน:</b> พิมพ์โจทย์โดยไม่ใส่ข้อมูลส่วนบุคคล → กดสร้าง Scenario → ตรวจค่าที่ระบบอ่านได้ → ส่งเข้าไปปรับในห้องจำลองก่อนรัน</div>
   <div class="notice">
     AI จำลองแบบกฎ: อ่านคำสำคัญและเปอร์เซ็นต์
     ไม่ได้เรียก Generative AI และอาจตีความคำปฏิเสธผิด
@@ -484,6 +547,7 @@ dialog::backdrop{background:#0009}
     เปลี่ยนข้อเสนอจากผลจำลองเป็นแผนทดลอง
     โดยไม่มีผลมอบหมายงานหรืออนุมัติทางกฎหมายจริง
   </p>
+  <div class="step"><b>ขั้นตอน Action Center:</b> เลือกหน่วยงานต้นทาง/ปลายทางและทักษะ → ดูรหัสบุคลากรตัวอย่าง → ร่างแผน/ตัวชี้วัด → บันทึกเฉพาะข้อมูลจำลองในเบราว์เซอร์</div>
 
   <div id="actionContext" class="notice">
     ยังไม่มีผลจำลอง เลือกสถานการณ์และรันก่อนเพื่อเชื่อมแผนกับ Action Center
@@ -492,6 +556,9 @@ dialog::backdrop{background:#0009}
   <div class="grid two">
     <div class="card">
       <h2>① Gov-Gig Marketplace</h2>
+      <p class="muted">ขั้นนี้ใช้ดูตัวอย่างบุคลากรสมมติที่มีทักษะตรง ไม่ได้ทำรายการโอนย้ายจริง</p>
+      <label for="sourceDepartment">หน่วยงานต้นทาง</label><select id="sourceDepartment"></select>
+      <label for="targetDepartment">หน่วยงาน/ภารกิจปลายทาง</label><select id="targetDepartment"></select>
       <label for="gigSkill">ทักษะที่ภารกิจต้องใช้</label>
       <select id="gigSkill"></select>
 
@@ -506,8 +573,8 @@ dialog::backdrop{background:#0009}
 
       <div id="candidateList" class="gap"></div>
       <p class="muted gap">
-        จับคู่ตามทักษะและกำลังว่างสมมติ ยังไม่ตรวจคุณสมบัติ
-        หรือฐานอำนาจการจัดสรรคน และไม่จองกำลังคนจริง
+        รหัสแสดงเป็นอักษรอังกฤษ + ตัวเลข 4 หลัก + อักษรตรวจท้าย
+        ใช้สาธิตการระบุบุคลากร ไม่ใช่รหัสหรือข้อมูลจริง และไม่ทำการโอนย้ายจริง
       </p>
     </div>
 
@@ -524,6 +591,7 @@ dialog::backdrop{background:#0009}
   <div class="grid two gap">
     <form id="sandboxForm" class="card">
       <h2>③ Policy Sandbox</h2>
+      <p class="muted">ร่างแผนทดลองโดยกำหนดตัวชี้วัดและเงื่อนไขหยุด ก่อนนำไปพิจารณากับผู้เกี่ยวข้อง</p>
 
       <label for="trialName">ชื่อแผนทดลอง</label>
       <input id="trialName" maxlength="160" required>
@@ -587,6 +655,7 @@ dialog::backdrop{background:#0009}
 <!-- FEEDBACK -->
 <section id="learning" class="view">
   <h1>Feedback, Calibration & Audit</h1>
+  <div class="step"><b>ขั้นตอน:</b> บันทึกสิ่งที่สังเกต → เสนอค่าที่ควรทบทวน → ผู้ใช้ยืนยันก่อนใช้ในรอบถัดไป → ตรวจประวัติและดาวน์โหลดข้อมูลสำรองได้</div>
 
   <div class="grid two">
     <form id="feedbackForm" class="card">
@@ -740,6 +809,7 @@ orgs.forEach((org,department) => {
   for(let i=0;i<org.people;i++) {
     personnel.push({
       id:personnel.length+1,
+      code:`${["STR","SVC","DAT","FLD","DIG","GIS"][department]}-${String(i+1).padStart(4,"0")}${String.fromCharCode(65+(i%26))}`,
       department,
       skills:[...new Set([
         org.skill,
@@ -793,17 +863,76 @@ const presets = [
   }
 ];
 
+// 45 additional Thai public-sector cases; every case is a fictional planning prompt.
+const scenarioSpecs = [
+  ["ศูนย์บริการรัฐร่วม: ลดการส่งประชาชนวนหลายหน่วย","บริการประชาชน","ส่วนกลาง","กรมการปกครอง","สำนักงานเขต · หน่วยบริการดิจิทัล","รวมขั้นตอนยืนยันตัวตนและส่งคำขอให้จบในจุดเดียว",28,6,28,24,"inclusion","surge"],
+  ["ทะเบียนประชาชนค้างสะสมช่วงเปลี่ยนระบบ","บริการประชาชน","ภาคกลาง","กรมการปกครอง","องค์กรปกครองส่วนท้องถิ่น · สำนักทะเบียน","กระจายเจ้าหน้าที่ตรวจเอกสารและเปิดช่องทางช่วยกรอก",32,12,20,26,"cyber","surge"],
+  ["บัตรสวัสดิการ: ตรวจสิทธิและอุทธรณ์คำร้อง","บริการประชาชน","ภาคอีสาน","กระทรวงการคลัง","กระทรวง พม. · ธนาคารของรัฐ","จัดทีมตรวจคำร้องที่ข้อมูลรายได้และครัวเรือนไม่ตรงกัน",38,5,24,30,"budget","surge"],
+  ["งานใบอนุญาตธุรกิจค้างจากการส่งเอกสารซ้ำ","บริการประชาชน","ภาคตะวันออก","กรมพัฒนาธุรกิจการค้า","กรมสรรพากร · กรมโรงงานอุตสาหกรรม","เชื่อมจุดรับเอกสารและมอบหมายผู้ประสานงานข้ามกรม",26,4,30,28,"budget","none"],
+  ["ศูนย์ดำรงธรรม: จัดคิวเรื่องร้องเรียนเร่งด่วน","บริการประชาชน","ส่วนกลาง","กระทรวงมหาดไทย","จังหวัด · หน่วยงานเจ้าของเรื่อง","จัดทีมคัดแยกเรื่องและติดตาม SLA ที่พ้นกำหนด",34,8,18,32,"none","surge"],
+  ["บริการประชาชนหลายภาษาในพื้นที่ชายแดน","บริการประชาชน","ภาคใต้","จังหวัดและอำเภอ","หน่วยงานความมั่นคง · สาธารณสุข · ผู้นำชุมชน","จัดทีมล่ามและเจ้าหน้าที่บริการที่เข้าถึงชุมชน",25,14,12,30,"inclusion","absence"],
+  ["รับสมัครและจัดสรรสิทธิช่วยเหลือหลังเหตุฉุกเฉิน","บริการประชาชน","ภาคกลาง","จังหวัด","กระทรวง พม. · กรมป้องกันและบรรเทาสาธารณภัย","เปิดจุดรับคำขอและตรวจซ้ำเพื่อป้องกันผู้ตกหล่น",46,12,18,30,"disaster","surge"],
+  ["เคลียร์คำขอข้อมูลข่าวสารภาครัฐที่เกินกำหนด","บริการประชาชน","ส่วนกลาง","หน่วยงานเจ้าของข้อมูล","สำนักงานคณะกรรมการข้อมูลข่าวสารของราชการ · ผู้ร้อง","จัดลำดับคำขอและคุ้มครองข้อมูลที่ต้องปกปิด",24,5,18,22,"budget","none"],
+  ["น้ำท่วมลุ่มเจ้าพระยา: จัดเวรเฝ้าระวังข้ามจังหวัด","ภัยพิบัติและสิ่งแวดล้อม","ภาคกลาง","สำนักงานทรัพยากรน้ำแห่งชาติ","จังหวัดลุ่มน้ำ · ชลประทาน · กรมทางหลวง","สร้างเวรข้อมูลระดับน้ำและแผนปิดเส้นทางร่วมกัน",48,12,25,36,"disaster","surge"],
+  ["ภัยแล้ง: จัดสรรน้ำอุปโภคบริโภคและเกษตร","ภัยพิบัติและสิ่งแวดล้อม","ภาคอีสาน","กรมชลประทาน","จังหวัด · เกษตรจังหวัด · ประปาส่วนภูมิภาค","จัดทีมข้อมูลแหล่งน้ำและสื่อสารการแบ่งปันน้ำ",42,10,22,32,"disaster","surge"],
+  ["ไฟป่าและฝุ่นควัน: รวมทีมลาดตระเวนและแจ้งเตือน","ภัยพิบัติและสิ่งแวดล้อม","ภาคเหนือ","กรมอุทยานแห่งชาติฯ","จังหวัด · ท้องถิ่น · สาธารณสุข · อาสาสมัคร","โยกกำลังติดตามจุดความร้อนและหนุนคลินิกพื้นที่",50,16,20,28,"disaster","surge"],
+  ["น้ำทะเลหนุน: ปกป้องแนวชุมชนและสถานีสูบน้ำ","ภัยพิบัติและสิ่งแวดล้อม","ภาคกลาง","กรมทรัพยากรน้ำ","จังหวัด · กรมโยธาธิการ · ท้องถิ่น","จัดทีมวิศวกรและเจ้าหน้าที่ภาคสนามตามระดับความเสี่ยง",38,8,18,27,"disaster","surge"],
+  ["ดินถล่มปิดถนน: เปิดเส้นทางและส่งของจำเป็น","ภัยพิบัติและสิ่งแวดล้อม","ภาคตะวันตก","กรมทางหลวงชนบท","จังหวัด · ปภ. · ตำรวจ · ท้องถิ่น","ระดมช่างสำรวจและเจ้าหน้าที่ประสานเส้นทางสำรอง",44,14,15,29,"disaster","surge"],
+  ["หมอกควันข้ามแดน: ประสานข้อมูลและสื่อสารสาธารณะ","ภัยพิบัติและสิ่งแวดล้อม","ภาคเหนือ","กระทรวงทรัพยากรธรรมชาติฯ","กระทรวงการต่างประเทศ · จังหวัด · สาธารณสุข","ตั้งทีมข้อมูลร่วมและแปลประกาศเตือนภัยให้ประชาชน",34,6,26,35,"disaster","none"],
+  ["ขยะตกค้างหลังเทศกาลท่องเที่ยว","ภัยพิบัติและสิ่งแวดล้อม","ภาคใต้","องค์กรปกครองส่วนท้องถิ่น","จังหวัด · กรมควบคุมมลพิษ · ผู้ประกอบการ","จัดตารางเก็บขยะและเจ้าหน้าที่ติดตามจุดเสี่ยง",28,6,18,24,"budget","surge"],
+  ["น้ำเสียจากนิคมอุตสาหกรรม: ตรวจสอบหลายหน่วย","ภัยพิบัติและสิ่งแวดล้อม","ภาคตะวันออก","กรมโรงงานอุตสาหกรรม","กรมควบคุมมลพิษ · จังหวัด · นิคมอุตสาหกรรม","จัดชุดตรวจร่วมและกำหนดเจ้าภาพหลักฐานผลตรวจ",33,5,20,34,"none","surge"],
+  ["คลื่นความร้อน: ปรับแผนดูแลกลุ่มเปราะบาง","สุขภาพและสังคม","ภาคกลาง","กระทรวงสาธารณสุข","กระทรวง พม. · ท้องถิ่น · โรงเรียน","ส่งทีมคัดกรองและเยี่ยมบ้านในชุมชนเสี่ยง",40,12,16,25,"disaster","surge"],
+  ["โรคระบาดในชุมชน: เพิ่มทีมสอบสวนและสื่อสาร","สุขภาพและสังคม","ภาคอีสาน","กรมควบคุมโรค","โรงพยาบาล · จังหวัด · กระทรวงศึกษาธิการ","จัดคนสอบสวนโรคและสื่อสารแนวทางเดียวกัน",52,20,22,30,"disaster","surge"],
+  ["ผู้ป่วยฉุกเฉินพื้นที่ห่างไกล: ประสานส่งต่อ","สุขภาพและสังคม","ภาคตะวันตก","สำนักงานหลักประกันสุขภาพแห่งชาติ","โรงพยาบาล · กู้ชีพท้องถิ่น · สถาบันการแพทย์ฉุกเฉิน","เพิ่มผู้ประสานเตียงและเครือข่ายส่งต่อ",34,14,18,33,"none","surge"],
+  ["คิวตรวจสุขภาพแรงงานข้ามชาติ","สุขภาพและสังคม","ภาคตะวันออก","กระทรวงสาธารณสุข","กระทรวงแรงงาน · จังหวัด · นายจ้าง","จัดหน่วยตรวจเคลื่อนที่และทีมประสานเอกสาร",30,8,16,28,"inclusion","surge"],
+  ["ดูแลผู้สูงอายุพึ่งพิง: เชื่อมข้อมูลบริการในชุมชน","สุขภาพและสังคม","ภาคเหนือ","กระทรวง พม.","สาธารณสุข · ท้องถิ่น · อาสาสมัคร","จัดผู้ดูแลและทีมเยี่ยมบ้านตามระดับการพึ่งพิง",32,10,20,29,"budget","absence"],
+  ["คุ้มครองเด็กเสี่ยง: ลดการส่งต่อและติดตามซ้ำ","สุขภาพและสังคม","ภาคกลาง","กระทรวง พม.","โรงเรียน · ตำรวจ · สาธารณสุข · ศาลเยาวชน","จัด case manager และกรอบแลกเปลี่ยนข้อมูลที่เหมาะสม",28,9,14,36,"none","absence"],
+  ["ที่พักชั่วคราวและบริการสังคมช่วงย้ายถิ่น","สุขภาพและสังคม","ภาคใต้","จังหวัด","กระทรวง พม. · สาธารณสุข · หน่วยงานความมั่นคง","จัดเจ้าหน้าที่ประเมินความต้องการและคุ้มครองสิทธิ",38,13,16,34,"disaster","surge"],
+  ["ทุนการศึกษาและช่วยเหลือนักเรียนตกหล่น","สุขภาพและสังคม","ภาคอีสาน","กระทรวงศึกษาธิการ","โรงเรียน · ท้องถิ่น · กองทุนการศึกษา","จัดทีมตรวจคำขอและค้นหานักเรียนที่ขาดข้อมูล",29,8,24,25,"budget","none"],
+  ["ตรวจโรงเรียนหลังเหตุภัยพิบัติก่อนเปิดเรียน","สุขภาพและสังคม","ภาคกลาง","กระทรวงศึกษาธิการ","ปภ. · จังหวัด · วิศวกรท้องถิ่น","ตั้งทีมตรวจอาคาร สุขาภิบาล และเส้นทางปลอดภัย",42,12,14,26,"disaster","surge"],
+  ["จับคู่ผู้ว่างงานกับงานทักษะใหม่ในจังหวัด","เศรษฐกิจและพื้นที่","ภาคตะวันออก","กรมการจัดหางาน","กรมพัฒนาฝีมือแรงงาน · สถานศึกษา · นายจ้าง","ย้ายผู้ให้คำปรึกษาและผู้ประเมินทักษะไปจุดบริการ",31,7,24,25,"budget","surge"],
+  ["ผลกระทบส่งออก: ตั้งทีมช่วยผู้ประกอบการรายย่อย","เศรษฐกิจและพื้นที่","ภาคตะวันออก","กระทรวงพาณิชย์","กรมศุลกากร · กระทรวงการคลัง · สภาอุตสาหกรรม","รวมผู้เชี่ยวชาญคำปรึกษาเอกสารและตลาดส่งออก",36,8,28,31,"budget","surge"],
+  ["โรคพืชระบาด: ส่งนักวิชาการเกษตรสนับสนุนพื้นที่","เศรษฐกิจและพื้นที่","ภาคอีสาน","กรมวิชาการเกษตร","เกษตรจังหวัด · สหกรณ์ · องค์กรปกครองส่วนท้องถิ่น","เพิ่มทีมวินิจฉัยและรายงานการระบาดรายตำบล",45,12,20,29,"disaster","surge"],
+  ["ติดตามหนี้เกษตรกรและปรับแผนช่วยเหลือ","เศรษฐกิจและพื้นที่","ภาคเหนือ","กระทรวงเกษตรและสหกรณ์","กระทรวงการคลัง · ธนาคารรัฐ · จังหวัด","ประสานข้อมูลมาตรการโดยไม่ให้ประชาชนยื่นซ้ำ",33,6,25,33,"budget","none"],
+  ["ท่าเรือและด่านชายแดนหนาแน่นช่วงฤดูกาล","เศรษฐกิจและพื้นที่","ภาคใต้","กรมศุลกากร","ตรวจคนเข้าเมือง · กระทรวงพาณิชย์ · ผู้ประกอบการ","จัดเวรตรวจและเจ้าหน้าที่แก้ปัญหาคอขวดตามช่วงเวลา",39,7,20,32,"budget","surge"],
+  ["นักท่องเที่ยวตกค้างจากเหตุยกเลิกเที่ยวบิน","เศรษฐกิจและพื้นที่","ภาคใต้","กระทรวงการท่องเที่ยวและกีฬา","สนามบิน · ตำรวจท่องเที่ยว · สายการบิน · จังหวัด","ตั้งจุดประสานการเดินทางและข้อมูลหลายภาษา",42,8,18,30,"disaster","surge"],
+  ["ถนนสายหลักเสียหาย: จัดทีมซ่อมและบริหารจราจร","เศรษฐกิจและพื้นที่","ภาคตะวันตก","กรมทางหลวง","ตำรวจ · กรมทางหลวงชนบท · จังหวัด","ระดมวิศวกรและเจ้าหน้าที่ควบคุมทางเบี่ยง",35,10,18,28,"disaster","surge"],
+  ["ความปลอดภัยทางถนนช่วงเทศกาล","เศรษฐกิจและพื้นที่","ภาคกลาง","สำนักงานตำรวจแห่งชาติ","กรมป้องกันฯ · สาธารณสุข · ท้องถิ่น","จัดกำลังด่าน จุดเสี่ยง และชุดเก็บข้อมูลอุบัติเหตุ",38,8,16,25,"none","surge"],
+  ["ไฟฟ้าขัดข้องกระทบบริการรัฐและโรงพยาบาล","เศรษฐกิจและพื้นที่","ภาคใต้","กระทรวงพลังงาน","การไฟฟ้า · สาธารณสุข · จังหวัด","วางผู้ประสานภาวะฉุกเฉินและลำดับโหลดสำคัญ",32,6,18,27,"disaster","surge"],
+  ["ทบทวนสิทธิที่ดินและแก้ข้อร้องเรียนซ้ำซ้อน","ข้อมูลและธรรมาภิบาล","ภาคเหนือ","กรมที่ดิน","ป่าไม้ · ส.ป.ก. · จังหวัด · ผู้ร้อง","ตั้งทีมตรวจเอกสารและคลี่คลายข้อขัดแย้งข้ามหน่วย",31,7,15,38,"none","absence"],
+  ["คดีค้างสะสม: จัดทีมธุรการและนัดหมายศาล","ข้อมูลและธรรมาภิบาล","ส่วนกลาง","กระทรวงยุติธรรม","ศาล · อัยการ · กรมราชทัณฑ์","ลดงานเอกสารและจัดคิวส่งต่อโดยคงอำนาจแต่ละองค์กร",28,10,22,34,"budget","surge"],
+  ["เรือนจำแออัด: วางแผนส่งต่อบริการและคืนคนสู่สังคม","ข้อมูลและธรรมาภิบาล","ภาคกลาง","กรมราชทัณฑ์","กระทรวงยุติธรรม · สาธารณสุข · กรมพัฒนาฝีมือแรงงาน","เพิ่มทีมประเมินสุขภาพและเตรียมความพร้อมก่อนปล่อย",34,12,16,30,"budget","absence"],
+  ["จัดซื้อจัดจ้างเร่งด่วน: เพิ่มทีมตรวจความโปร่งใส","ข้อมูลและธรรมาภิบาล","ส่วนกลาง","กรมบัญชีกลาง","หน่วยงานเจ้าของโครงการ · สตง. · ผู้ค้า","กระจายผู้เชี่ยวชาญตรวจเอกสารและเปิดเผยขั้นตอน",30,4,20,28,"budget","surge"],
+  ["รับมือข่าวลวงช่วงวิกฤต: ใช้ข้อมูลกลางสื่อสาร","ข้อมูลและธรรมาภิบาล","ส่วนกลาง","กรมประชาสัมพันธ์","หน่วยงานเจ้าของเหตุ · จังหวัด · แพลตฟอร์มสื่อ","ตั้งเวรตรวจข้อเท็จจริงและสื่อสารหลายช่องทาง",27,5,24,30,"cyber","surge"],
+  ["เชื่อมข้อมูลภารกิจข้ามกระทรวงโดยคุ้มครองสิทธิ","ข้อมูลและธรรมาภิบาล","ส่วนกลาง","สำนักงานพัฒนารัฐบาลดิจิทัล","เจ้าของข้อมูล · สำนักงานคุ้มครองข้อมูลส่วนบุคคล","กำหนดสิทธิใช้ข้อมูลและผู้รับผิดชอบก่อนเชื่อมระบบ",24,3,32,40,"cyber","none"],
+  ["กำลังคนเกษียณสูง: ถ่ายทอดความรู้ตำแหน่งสำคัญ","กำลังคนและโครงสร้าง","ส่วนกลาง","สำนักงาน ก.พ.","กระทรวงเจ้าสังกัด · สถาบันพัฒนาบุคลากร","จัดผู้สอนงานและลำดับความรู้ที่ต้องถ่ายทอดก่อนเกษียณ",18,18,14,24,"budget","absence"],
+  ["ทักษะดิจิทัลไม่ตรงงาน: สร้างแผน reskill ข้ามกรม","กำลังคนและโครงสร้าง","ส่วนกลาง","สำนักงาน ก.พ.","กระทรวงดิจิทัลฯ · หน่วยงานเจ้าของภารกิจ","จับคู่ทักษะที่ขาดกับหลักสูตรและงานทดลองระยะสั้น",22,7,26,23,"budget","none"],
+  ["โอนย้ายกำลังคนช่วยภารกิจเร่งด่วนโดยสมัครใจ","กำลังคนและโครงสร้าง","ส่วนกลาง","สำนักงาน ก.พ.","กรมต้นทาง · กรมปลายทาง · ผู้แทนบุคลากร","ทดสอบ Gov-Gig แบบสมัครใจและคุ้มครองงานต้นทาง",28,6,16,30,"none","absence"],
+  ["รวมภารกิจซ้ำซ้อนแต่รักษาจุดบริการภูมิภาค","กำลังคนและโครงสร้าง","ส่วนกลาง","สำนักงบประมาณ","สำนักงาน ก.พ. · กระทรวงเจ้าภาพ · จังหวัด","ประเมินบทบาทซ้ำและต้นทุนช่วงเปลี่ยนผ่านก่อนรวมทีม",20,5,18,36,"budget","absence","merge"],
+  ["ภารกิจเร่งด่วนใหม่แต่ยังไม่มีเจ้าภาพชัดเจน","กำลังคนและโครงสร้าง","ส่วนกลาง","สำนักนายกรัฐมนตรี","กระทรวงที่เกี่ยวข้อง · จังหวัด · ผู้รับบริการ","ทดลองตั้ง mission team พร้อมเจ้าภาพ ตัวชี้วัด และวันทบทวน",35,4,20,38,"budget","surge","merge"]
+];
+
+const scenarioCategoryByPreset={capacity:"กำลังคนและโครงสร้าง",structure:"กำลังคนและโครงสร้าง",chiangrai:"ภัยพิบัติและสิ่งแวดล้อม",flood:"ภัยพิบัติและสิ่งแวดล้อม",cyber:"ข้อมูลและธรรมาภิบาล"};
+presets.forEach(item=>{item.category=scenarioCategoryByPreset[item.id];item.stakeholders="กระทรวง/กรมเจ้าภาพ · จังหวัดและหน่วยงานคู่ประสาน · ประชาชนผู้รับบริการ"});
+const additionalScenarios=scenarioSpecs.map((spec,index)=>{
+  const [name,category,regionName,agency,partners,mission,workGrowth,staffCut,digitalGain,friction,external,stress,structure="keep"]=spec;
+  return {id:`thai-${String(index+6).padStart(2,"0")}`,name,category,regionName,pressure:category,description:`${mission} · เจ้าภาพ: ${agency}`,stakeholders:`${agency} · ${partners}`,workGrowth,staffCut,digitalGain,friction:Math.min(35,friction),external,stress,structure};
+});
+const scenarioCatalog=[...presets,...additionalScenarios];
+
 /* -------------------- Persistence -------------------- */
 
 const STORAGE_KEY = "org-twin-os-v3";
 let workspace = {
-  history:[],trials:[],missions:[],feedback:[],audit:[]
+  history:[],trials:[],missions:[],feedback:[],audit:[],scenarios:[],planTemplates:[]
 };
 
 try {
   const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
-  if(saved && Object.keys(workspace).every(key=>Array.isArray(saved[key]))) {
-    workspace = saved;
+  if(saved && typeof saved==="object") {
+    Object.keys(workspace).forEach(key=>{
+      if(Array.isArray(saved[key])) workspace[key]=saved[key];
+    });
   }
 } catch(error) {
   console.warn("Cannot read local storage",error);
@@ -824,7 +953,7 @@ function audit(event) {
   workspace.audit = workspace.audit.slice(0,100);
 }
 
-let currentPreset = clone(presets);
+let currentPreset = clone(presets[0]);
 let lastRun = null;
 let generatedScenario = null;
 let selectedCandidates = [];
@@ -897,7 +1026,7 @@ function renderWorkspace() {
   $("walletList").innerHTML = wallet.size
     ? [...wallet.values()].slice(0,12).map(person=>`
       <p>
-        <b>Agent #${person.id}</b>
+      <b>${esc(person.code)}</b>
         <span class="tag">${person.experiences.length} ประสบการณ์จำลอง</span><br>
         <small>${person.experiences.map(esc).join(" / ")}</small>
       </p>
@@ -1026,21 +1155,65 @@ function drawGraph() {
 
 /* -------------------- Scenario configuration -------------------- */
 
-$("scenarioCards").innerHTML = presets.map((scenario,index)=>`
-  <article class="card scenario">
-    <span class="badge">SCENARIO 0${index+1}</span>
-    <h3 style="margin-top:12px">${esc(scenario.name)}</h3>
-    <p class="muted">${esc(scenario.description)}</p>
-    <div class="gap"><span class="tag">${esc(scenario.pressure)}</span></div>
-    <button data-preset="${index}">โหลดสถานการณ์</button>
-  </article>
-`).join("");
-
-document.querySelectorAll("[data-preset]").forEach(button =>
-  button.onclick=()=>{
-    loadScenario(presets[Number(button.dataset.preset)]);
-    toast("โหลดสถานการณ์แล้ว ปรับค่าและกดจำลองได้");
+const regionData={
+  north:{name:"ภาคเหนือ",provinces:["เชียงราย","เชียงใหม่","น่าน","ลำปาง"],mission:"จัดทีมติดตามน้ำป่าและช่วยเหลือพื้นที่ห่างไกล",external:"disaster",workGrowth:42,staffCut:12,digitalGain:18,friction:24},
+  northeast:{name:"ภาคอีสาน",provinces:["ขอนแก่น","อุบลราชธานี","นครราชสีมา","ร้อยเอ็ด"],mission:"ประสานบริการสุขภาพและจัดการภัยแล้ง",external:"disaster",workGrowth:35,staffCut:8,digitalGain:20,friction:22},
+  central:{name:"ภาคกลาง",provinces:["กรุงเทพมหานคร","พระนครศรีอยุธยา","ปทุมธานี","นครปฐม"],mission:"กระจายภาระงานบริการประชาชนและจัดการน้ำท่วม",external:"disaster",workGrowth:38,staffCut:10,digitalGain:24,friction:20},
+  east:{name:"ภาคตะวันออก",provinces:["ชลบุรี","ระยอง","จันทบุรี","ตราด"],mission:"ประสานงานบริการพื้นที่เศรษฐกิจและเหตุฉุกเฉิน",external:"budget",workGrowth:30,staffCut:7,digitalGain:22,friction:18},
+  west:{name:"ภาคตะวันตก",provinces:["กาญจนบุรี","ตาก","ราชบุรี","เพชรบุรี"],mission:"ส่งทีมเคลื่อนที่ให้บริการพื้นที่ภูเขาและชายแดน",external:"disaster",workGrowth:32,staffCut:14,digitalGain:16,friction:26},
+  south:{name:"ภาคใต้",provinces:["สงขลา","นครศรีธรรมราช","ภูเก็ต","ยะลา"],mission:"ประสานศูนย์ช่วยเหลือภัยพิบัติและบริการหลายภาษา",external:"disaster",workGrowth:45,staffCut:12,digitalGain:20,friction:25}
+};
+function allScenarios(){return [...scenarioCatalog,...workspace.scenarios]}
+function renderScenarios(){
+  const scenarios=allScenarios();
+  const search=$("scenarioSearch").value.trim().toLocaleLowerCase("th");
+  const category=$("scenarioCategory").value;
+  const visible=scenarios.filter(scenario=>{
+    const matchesCategory=category==="all"||scenario.category===category;
+    const searchable=[scenario.name,scenario.description,scenario.stakeholders,scenario.regionName,scenario.category].join(" ").toLocaleLowerCase("th");
+    return matchesCategory&&(!search||searchable.includes(search));
   });
+  $("scenarioCount").textContent=`แสดง ${visible.length} จาก ${scenarios.length} สถานการณ์ · ตัวอย่างตั้งต้น ${scenarioCatalog.length} รายการ${workspace.scenarios.length?` · ทีมสร้างเอง ${workspace.scenarios.length} รายการ`:""}`;
+  $("scenarioCards").innerHTML=visible.map((scenario,index)=>`
+    <article class="card scenario"><span class="badge">${scenario.custom?"ทีมสร้าง":"สถานการณ์ไทย"} ${String(index+1).padStart(2,"0")}</span>
+      <h3 class="gap">${esc(scenario.name)}</h3><p class="muted">${esc(scenario.description||"สถานการณ์ที่ทีมกำหนด")}</p>
+      <div><span class="tag">${esc(scenario.category||"ทีมกำหนด")}</span> <span class="tag">${esc(scenario.regionName||"ส่วนกลาง")}</span></div>
+      <p class="muted gap"><b>หน่วยงาน/ผู้เกี่ยวข้อง:</b> ${esc(scenario.stakeholders||"ทีมเจ้าภาพ · หน่วยงานคู่ประสาน · ประชาชนผู้รับบริการ")}</p>
+      ${scenario.custom?`<button class="danger gap" data-delete-scenario="${esc(scenario.id)}">ลบออกจากรายการ</button>`:""}
+      <button class="gap" data-load-scenario="${esc(scenario.id)}">ใช้สถานการณ์นี้</button></article>`).join("")||'<div class="empty">ไม่พบสถานการณ์ที่ตรงกับคำค้น ลองเลือกหมวดอื่นหรือเคลียร์คำค้น</div>';
+  document.querySelectorAll("[data-load-scenario]").forEach(button=>button.onclick=()=>{
+    const selected=allScenarios().find(item=>item.id===button.dataset.loadScenario);
+    if(selected){loadScenario(selected);toast("โหลดสถานการณ์แล้ว ตรวจค่าก่อนจำลองได้เลย")}
+  });
+  document.querySelectorAll("[data-delete-scenario]").forEach(button=>button.onclick=()=>{
+    workspace.scenarios=workspace.scenarios.filter(item=>item.id!==button.dataset.deleteScenario);
+    persist();renderScenarios();toast("ลบสถานการณ์ที่สร้างในเครื่องนี้แล้ว");
+  });
+}
+renderScenarios();
+$("scenarioSearch").addEventListener("input",renderScenarios);
+$("scenarioCategory").addEventListener("change",renderScenarios);
+function scenarioFromRegion(regionKey,province){
+  const region=regionData[regionKey];
+  return {id:"map-"+regionKey+"-"+province,name:`${province}: ${region.mission}`,description:`ตัวอย่างภารกิจใน${region.name} · ${province}`,pressure:"สถานการณ์พื้นที่ · ข้อมูลสมมติ",region:regionKey,regionName:region.name,workGrowth:region.workGrowth,staffCut:region.staffCut,digitalGain:region.digitalGain,friction:region.friction,structure:"keep",stress:"surge",external:region.external};
+}
+function showRegion(regionKey){
+  const region=regionData[regionKey];if(!region)return;
+  document.querySelectorAll(".map-region").forEach(item=>item.classList.toggle("selected",item.dataset.region===regionKey));
+  $("regionDetail").innerHTML=`<h3>${esc(region.name)}</h3><p>${esc(region.mission)}</p><p class="muted">เลือกจังหวัดเพื่อใส่ภารกิจนี้เป็นสถานการณ์ในห้องจำลอง</p>`;
+  $("provinceChoices").innerHTML=region.provinces.map(province=>`<button class="province-chip" data-province="${esc(province)}">📍 ${esc(province)} · สร้างโจทย์</button>`).join("");
+  document.querySelectorAll("[data-province]").forEach(button=>button.onclick=()=>{
+    const scenario=scenarioFromRegion(regionKey,button.dataset.province);loadScenario(scenario);openPage("simulation");
+    toast("โหลดโจทย์จังหวัดแล้ว ปรับสมมติฐานก่อนจำลองได้");$("caseName").focus();
+  });
+}
+document.querySelectorAll(".map-region").forEach(shape=>shape.addEventListener("click",()=>showRegion(shape.dataset.region)));
+$("customScenarioRegion").innerHTML=Object.entries(regionData).map(([key,value])=>`<option value="${key}">${esc(value.name)}</option>`).join("");
+$("customScenarioForm").onsubmit=event=>{
+  event.preventDefault();const region=regionData[$("customScenarioRegion").value];
+  const scenario={id:uid(),name:$("customScenarioName").value.trim(),description:"ทีมสร้างสถานการณ์จากสมมติฐานที่กรอก",pressure:"ทีมกำหนด",category:"บริการประชาชน",regionName:region.name,workGrowth:valueNumber("customWork",0,80),staffCut:valueNumber("customStaff",0,30),digitalGain:valueNumber("customDigital",0,40),friction:valueNumber("customFriction",0,35),structure:"keep",stress:"none",external:$("customExternal").value,custom:true};
+  workspace.scenarios.unshift(scenario);persist();renderScenarios();loadScenario(scenario);event.target.reset();openPage("simulation");toast("บันทึกสถานการณ์ในเครื่องนี้แล้ว");
+};
 
 const sliderIds=["workGrowth","staffCut","digitalGain","friction"];
 
@@ -1075,6 +1248,29 @@ function readScenario() {
   };
 }
 
+const basePlans=[
+  {id:"A",name:"ทำงานตามเดิม",transferPct:0,digitalGain:0,trainingGain:0,coordinationReduction:0,costAdd:0},
+  {id:"B",name:"จัดสรรกำลังข้ามหน่วย",transferPct:10,digitalGain:0,trainingGain:0,coordinationReduction:0,costAdd:5},
+  {id:"C",name:"ดิจิทัลและลดการส่งต่อ",transferPct:0,digitalGain:null,trainingGain:0,coordinationReduction:40,costAdd:0}
+];
+function allPlans(){return [...basePlans,...workspace.planTemplates]}
+let selectedPlanIds=new Set(["A","B","C"]);
+function renderPlans(){
+  $("planChoices").innerHTML=allPlans().map(plan=>`<label class="tag" style="cursor:pointer"><input type="checkbox" data-plan-choice="${esc(plan.id)}" ${selectedPlanIds.has(plan.id)?"checked":""} style="width:auto"> ${esc(plan.id.length===1?"แผน "+plan.id:plan.name)} · ${esc(plan.name)}</label>`).join("");
+  document.querySelectorAll("[data-plan-choice]").forEach(box=>box.onchange=()=>box.checked?selectedPlanIds.add(box.dataset.planChoice):selectedPlanIds.delete(box.dataset.planChoice));
+  $("customPlanList").innerHTML=workspace.planTemplates.length?workspace.planTemplates.map(plan=>`<p><b>${esc(plan.name)}</b> <span class="tag">ย้าย ${plan.transferPct}% · ดิจิทัล ${plan.digitalGain}% · ฝึก ${plan.trainingGain}% · ลดประสานงาน ${plan.coordinationReduction}%</span> <button type="button" class="danger" data-delete-plan="${esc(plan.id)}">ลบแผน</button></p>`).join(""):'<small>ยังไม่มีแผนที่สร้างเอง</small>';
+  document.querySelectorAll("[data-delete-plan]").forEach(button=>button.onclick=()=>{workspace.planTemplates=workspace.planTemplates.filter(plan=>plan.id!==button.dataset.deletePlan);selectedPlanIds.delete(button.dataset.deletePlan);persist();renderPlans();});
+}
+function selectedPlans(){return allPlans().filter(plan=>selectedPlanIds.has(plan.id))}
+renderPlans();
+$("customPlanForm").onsubmit=event=>{
+  event.preventDefault();
+  const plan={id:"custom-"+uid(),name:$("customPlanName").value.trim(),transferPct:valueNumber("planTransfer",0,30),digitalGain:valueNumber("planDigital",0,50),trainingGain:valueNumber("planTraining",0,30),coordinationReduction:valueNumber("planCoordination",0,80),costAdd:0};
+  workspace.planTemplates.push(plan);persist();renderPlans();
+  selectedPlanIds.add(plan.id);renderPlans();
+  event.target.reset();toast("เพิ่มแผนแล้ว เลือกแผนที่ต้องการแล้วกดจำลอง");
+};
+
 /* -------------------- Simulation engine -------------------- */
 
 /*
@@ -1108,7 +1304,8 @@ function simulate(config,plan,seed) {
     groups.demand=0;
   }
 
-  if(plan==="B") {
+  const transferBudget=groups.reduce((sum,group)=>sum+group.capacity,0)*plan.transferPct/100;
+  if(plan.transferPct>0) {
     /*
       ปล่อยเฉพาะกำลังที่เกินความต้องการประมาณการต้นทาง
       และคิดประสิทธิภาพข้ามทักษะ 85%
@@ -1132,7 +1329,7 @@ function simulate(config,plan,seed) {
         const need=Math.max(0,
           receiver.demand/frictionFactor-receiver.capacity
         );
-        const transfer=Math.min(spare,need/.85);
+        const transfer=Math.min(spare,need/.85,Math.max(0,transferBudget-moved));
         donor.capacity-=transfer;
         receiver.capacity+=transfer*.85;
         spare-=transfer;
@@ -1142,6 +1339,7 @@ function simulate(config,plan,seed) {
     });
   }
 
+  const effectiveDigital=plan.id==="C"?config.digitalGain:plan.digitalGain;
   let totalIn=0,totalDone=0,totalCapacity=0;
   let burdenSum=0,delaySum=0,stressSum=0;
   const timeline=[];
@@ -1153,8 +1351,8 @@ function simulate(config,plan,seed) {
     const demandShock=standardDemandShock*externalDemandShock;
     const capacityShock=shock&&config.stress==="absence"?.85:1;
     const budgetShock=config.external==="budget"?.95:1;
-    const cyberShock=shock&&config.external==="cyber"&&plan==="C"?.55:1;
-    const inclusionFactor=config.external==="inclusion"&&plan==="C"?.65:1;
+    const cyberShock=shock&&config.external==="cyber"&&effectiveDigital>0?.55:1;
+    const inclusionFactor=config.external==="inclusion"&&effectiveDigital>0?.65:1;
 
     let periodIn=0,periodDone=0,periodCap=0;
     let weightedBurden=0,highLoadDemand=0;
@@ -1163,8 +1361,8 @@ function simulate(config,plan,seed) {
       if(group.demand===0)return;
 
       const arrival=group.demand*(.94+random()*.12)*demandShock;
-      const digital=plan==="C"?(1+config.digitalGain/100)*cyberShock*inclusionFactor:1;
-      const friction=config.friction/100*(plan==="C"?.6:1);
+      const digital=(1+effectiveDigital/100+plan.trainingGain/100)*cyberShock*inclusionFactor;
+      const friction=config.friction/100*(1-plan.coordinationReduction/100);
       const transition=config.structure==="merge"&&
         group.index===1&&tick<3?.9:1;
 
@@ -1199,8 +1397,7 @@ function simulate(config,plan,seed) {
     ดัชนีต้นทุนสมมติ:
     ไม่ใช่เงินบาท ไม่ใช่ผลประหยัดที่พิสูจน์แล้ว
   */
-  const costIndex=100+
-    (plan==="B"?5:plan==="C"?config.digitalGain*.65:0)+
+  const costIndex=100+plan.costAdd+effectiveDigital*.65+plan.trainingGain*.45+
     (config.structure==="merge"?8:0);
 
   return {
@@ -1239,8 +1436,10 @@ async function runSimulation() {
   try {
     const config=readScenario();
     const plans=[];
+    const selected=selectedPlans();
+    if(!selected.length){toast("เลือกอย่างน้อยหนึ่งแผนก่อนจำลอง");return}
 
-    for(const [index,plan] of ["A","B","C"].entries()) {
+    for(const [index,plan] of selected.entries()) {
       const rows=[];
       for(let repetition=0;repetition<8;repetition++) {
         /*
@@ -1253,13 +1452,13 @@ async function runSimulation() {
         $("simLog").textContent=
           "DATA: snapshot ข้อมูลสมมติ 6 หน่วยงาน\n"+
           "ENGINE: group-based organizational simulation\n"+
-          `PLAN ${plan}: รอบ ${repetition+1}/8\n`+
+          `PLAN ${plan.name}: รอบ ${repetition+1}/8\n`+
           `STRUCTURE: ${config.structure}\n`+
           `STRESS: ${config.stress}\n`+
           "ผลยังไม่ใช่คำสั่งปรับองค์การ";
 
         $("progress").style.width=
-          ((index*8+repetition+1)/24*100)+"%";
+          ((index*8+repetition+1)/(selected.length*8)*100)+"%";
         await wait(25);
       }
 
@@ -1276,19 +1475,19 @@ async function runSimulation() {
       modelVersion:"group-demo-1.0",
       dataVersion:"synthetic-org-1.0",
       config,plans,
-    bestByCompletion:best[0].plan,
+    bestByCompletion:best[0].plan.name,
       disclaimer:
         "Synthetic organizational simulation; uncalibrated; no personnel or health assessment"
     };
 
     workspace.history.unshift({
-      id:lastRun.id,name:config.name,at:lastRun.at,best:best.plan
+      id:lastRun.id,name:config.name,at:lastRun.at,best:best[0].plan.name
     });
     workspace.history=workspace.history.slice(0,50);
     audit("รัน Scenario: "+config.name);
     persist();renderWorkspace();renderResults();renderActionContext();
 
-    $("simLog").textContent+="\nเสร็จสิ้น: 24 การรัน\nรอผู้ใช้ตรวจสอบผลและข้อจำกัด";
+    $("simLog").textContent+=`\nเสร็จสิ้น: ${selected.length*8} การรัน\nรอผู้ใช้ตรวจสอบผลและข้อจำกัด`;
     $("results").scrollIntoView({behavior:"smooth",block:"start"});
   } catch(error) {
     $("simLog").textContent="เกิดข้อผิดพลาด: "+error.message;
@@ -1302,12 +1501,6 @@ $("runButton").onclick=runSimulation;
 /* -------------------- Results -------------------- */
 
 function renderResults() {
-  const names={
-    A:"โครงสร้างการทำงานเดิม",
-    B:"จัดสรรกำลังทำงานข้ามหน่วย",
-    C:"ดิจิทัลและลดการส่งต่อ"
-  };
-
   const range=value=>
     `${fmt(value.mean)} <small>(${fmt(value.min)}–${fmt(value.max)})</small>`;
 
@@ -1321,10 +1514,10 @@ function renderResults() {
       <div class="grid three">
         ${lastRun.plans.map(plan=>`
           <div class="card result-plan ${
-            plan.plan===lastRun.bestByCompletion?"best":""
+            plan.plan.name===lastRun.bestByCompletion?"best":""
           }">
-            <span class="badge">PLAN ${plan.plan}</span>
-            <h3 class="gap">${names[plan.plan]}</h3>
+            <span class="badge">${esc(plan.plan.id)}</span>
+            <h3 class="gap">${esc(plan.plan.name)}</h3>
             <div class="metric">${fmt(plan.metrics.completion.mean)}%</div>
             <small>งานที่เสร็จจากงานเข้ารวม 12 รอบ</small>
             <p class="gap">
@@ -1333,7 +1526,7 @@ function renderResults() {
               รอจากงานค้าง: <b>${fmt(plan.metrics.delay.mean)}</b> รอบ<br>
               ดัชนีต้นทุน: <b>${fmt(plan.metrics.costIndex.mean)}</b>
             </p>
-            <button data-select-plan="${plan.plan}">นำแผนไป Action Center →</button>
+            <button data-select-plan="${esc(plan.plan.id)}">นำแผนไป Action Center →</button>
           </div>
         `).join("")}
       </div>
@@ -1358,7 +1551,7 @@ function renderResults() {
           <tbody>
             ${lastRun.plans.map(plan=>`
               <tr>
-                <td>${plan.plan}</td>
+                <td>${esc(plan.plan.name)}</td>
                 <td>${range(plan.metrics.completion)}</td>
                 <td>${range(plan.metrics.load)}</td>
                 <td>${range(plan.metrics.delay)}</td>
@@ -1370,7 +1563,7 @@ function renderResults() {
       </div>
 
       <div class="notice gap">
-        แผน ${lastRun.bestByCompletion} มีงานเสร็จมากที่สุดภายใต้สมมติฐานนี้
+        แผน “${esc(lastRun.bestByCompletion)}” มีงานเสร็จมากที่สุดภายใต้สมมติฐานนี้
         แต่ยังไม่ใช่แผนที่ดีที่สุดทุกมิติ
         ต้องพิจารณาต้นทุนจริง คุณภาพบริการ ทักษะ ความเป็นธรรม
         และข้อกฎหมายเพิ่มเติม<br>
@@ -1408,7 +1601,9 @@ function renderResults() {
 
   document.querySelectorAll("[data-select-plan]").forEach(button=>{
     button.onclick=()=>{
-      $("trialPlan").value=button.dataset.selectPlan;
+      const chosen=lastRun.plans.find(item=>item.plan.id===button.dataset.selectPlan);
+      $("trialPlan").innerHTML=lastRun.plans.map(item=>`<option value="${esc(item.plan.id)}">${esc(item.plan.name)}</option>`).join("");
+      $("trialPlan").value=chosen?.plan.id||lastRun.plans[0].plan.id;
       $("trialName").value=lastRun.config.name;
       if(lastRun.config.id==="chiangrai") {
         $("gigName").value="ทีมร่วมติดตามคุณภาพน้ำจังหวัดเชียงราย";
@@ -1423,7 +1618,7 @@ function renderResults() {
 
   drawBars("comparisonChart",
     lastRun.plans.map(plan=>({
-      label:"แผน "+plan.plan,value:plan.metrics.completion.mean
+      label:plan.plan.name,value:plan.metrics.completion.mean
     })),100,"% งานเสร็จ");
 
   drawBacklog();
@@ -1451,7 +1646,7 @@ function drawBars(id,data,max,title) {
 
 function drawBacklog() {
   const canvas=$("backlogChart"),ctx=canvas.getContext("2d");
-  const colors=["#38bdf8","#34d399","#fbbf24"];
+  const colors=["#38bdf8","#34d399","#fbbf24","#a78bfa","#fb7185","#f97316"];
   const lines=lastRun.plans.map(plan=>
     Array.from({length:12},(_,tick)=>
       average(plan.rows.map(row=>row.timeline[tick].backlog))
@@ -1477,7 +1672,7 @@ function drawBacklog() {
     });
     ctx.strokeStyle=colors[index];ctx.lineWidth=3;ctx.stroke();
     ctx.fillStyle=colors[index];ctx.font="14px Tahoma";
-    ctx.fillText("แผน "+["A","B","C"][index],left+index*95,22);
+    ctx.fillText(lastRun.plans[index].plan.name,left+index*95,22);
   });
 
   ctx.fillStyle="#9fb1ca";
@@ -1559,8 +1754,13 @@ $("applyAI").onclick=()=>{
 
 /* -------------------- Action Center -------------------- */
 
+$("sourceDepartment").innerHTML=orgs.map((org,index)=>`<option value="${index}">${esc(org.name)}</option>`).join("");
+$("targetDepartment").innerHTML=orgs.map((org,index)=>`<option value="${index}">${esc(org.name)}</option>`).join("");
+$("sourceDepartment").value="1";$("targetDepartment").value="3";
 $("gigSkill").innerHTML=skillNames.map(skill=>
   `<option>${esc(skill)}</option>`).join("");
+$("gigSkill").value=orgs[1].skill;
+$("sourceDepartment").onchange=()=>{$("gigSkill").value=orgs[Number($("sourceDepartment").value)].skill};
 
 function renderActionContext() {
   if(!lastRun)return;
@@ -1572,14 +1772,17 @@ function renderActionContext() {
 
 $("findPeople").onclick=()=>{
   const skill=$("gigSkill").value;
+  const source=Number($("sourceDepartment").value);
+  const target=Number($("targetDepartment").value);
+  if(source===target){toast("เลือกหน่วยงานต้นทางและปลายทางคนละหน่วยก่อน");return}
   selectedCandidates=personnel
-    .filter(person=>person.skills.includes(skill)&&person.availability>=60)
+    .filter(person=>person.department===source&&person.skills.includes(skill)&&person.availability>=60)
     .sort((a,b)=>b.availability-a.availability||a.id-b.id)
     .slice(0,8);
 
   $("candidateList").innerHTML=selectedCandidates.map(person=>`
     <p>
-      <b>Agent #${person.id}</b> · ${esc(orgs[person.department].name)}<br>
+      <b>${esc(person.code)}</b> · ${esc(orgs[person.department].name)} → ${esc(orgs[target].name)}<br>
       ${person.skills.map(skill=>`<span class="tag">${esc(skill)}</span>`).join("")}
       <small>กำลังว่างสมมติ ${person.availability}%</small>
     </p>
