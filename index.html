@@ -127,6 +127,9 @@ th{color:var(--muted);font-size:12px;font-weight:normal}
 }
 .scenario{display:flex;flex-direction:column}
 .scenario button{margin-top:auto}
+.category-choice{text-align:left;min-height:92px;display:flex;flex-direction:column;justify-content:space-between;gap:12px}
+.category-choice.selected{border-color:var(--accent);color:var(--accent);background:#142b41}
+.category-choice span{font-size:12px;color:var(--muted);font-weight:normal}
 .split-title{
   display:flex;align-items:center;justify-content:space-between;
   gap:10px;flex-wrap:wrap;
@@ -378,18 +381,18 @@ dialog::backdrop{background:#0009}
     <form id="customScenarioForm" class="grid two">
       <div><label for="customScenarioName">ชื่อสถานการณ์</label><input id="customScenarioName" maxlength="120" required placeholder="เช่น เปิดศูนย์ช่วยเหลือประชาชนช่วงน้ำท่วม"></div>
       <div><label for="customScenarioRegion">พื้นที่</label><select id="customScenarioRegion"><option value="central">ภาคกลาง</option><option value="north">ภาคเหนือ</option><option value="northeast">ภาคอีสาน</option><option value="east">ภาคตะวันออก</option><option value="west">ภาคตะวันตก</option><option value="south">ภาคใต้</option></select></div>
-      <div><label for="customWork">งานเพิ่ม (%)</label><input id="customWork" type="number" min="0" max="80" value="25"></div>
-      <div><label for="customStaff">กำลังคนไม่พร้อม (%)</label><input id="customStaff" type="number" min="0" max="30" value="5"></div>
-      <div><label for="customDigital">กำลังบริการดิจิทัลที่เพิ่ม (%)</label><input id="customDigital" type="number" min="0" max="40" value="15"></div>
-      <div><label for="customFriction">ความล่าช้าประสานงาน (%)</label><input id="customFriction" type="number" min="0" max="35" value="15"></div>
+      <div><label for="customWork">งานเพิ่ม (%)</label><input id="customWork" type="number" min="0" max="100" value="25"></div>
+      <div><label for="customStaff">กำลังคนไม่พร้อม (%)</label><input id="customStaff" type="number" min="0" max="100" value="5"></div>
+      <div><label for="customDigital">กำลังบริการดิจิทัลที่เพิ่ม (%)</label><input id="customDigital" type="number" min="0" max="100" value="15"></div>
+      <div><label for="customFriction">ความล่าช้าประสานงาน (%)</label><input id="customFriction" type="number" min="0" max="100" value="15"></div>
+      <p class="muted">ปรับแต่ละสมมติฐานได้ตั้งแต่ 0–100% ค่า 100% ใช้ทดสอบกรณีขอบเขตสูงสุดในแบบจำลองเท่านั้น</p>
       <div><label for="customExternal">แรงกดดันภายนอก</label><select id="customExternal"><option value="none">ไม่มี</option><option value="disaster">ภัยพิบัติ</option><option value="budget">งบประมาณตึงตัว</option><option value="cyber">ระบบดิจิทัลขัดข้อง</option><option value="inclusion">การเข้าถึงดิจิทัล</option></select></div>
       <div class="actions"><button class="primary" type="submit">＋ เพิ่มสถานการณ์</button></div>
     </form>
   </div>
-    <div class="grid two gap">
-      <div><label for="scenarioSearch">ค้นหาสถานการณ์ (ภารกิจ หน่วยงาน หรือผู้เกี่ยวข้อง)</label><input id="scenarioSearch" type="search" placeholder="เช่น น้ำท่วม, สาธารณสุข, ข้อมูลข้ามหน่วยงาน"></div>
-      <div><label for="scenarioCategory">กรองตามประเด็น</label><select id="scenarioCategory"><option value="all">ทุกประเด็น · 50 สถานการณ์</option><option value="บริการประชาชน">บริการประชาชน</option><option value="ภัยพิบัติและสิ่งแวดล้อม">ภัยพิบัติและสิ่งแวดล้อม</option><option value="สุขภาพและสังคม">สุขภาพและสังคม</option><option value="เศรษฐกิจและพื้นที่">เศรษฐกิจและพื้นที่</option><option value="กำลังคนและโครงสร้าง">กำลังคนและโครงสร้าง</option><option value="ข้อมูลและธรรมาภิบาล">ข้อมูลและธรรมาภิบาล</option></select></div>
-    </div>
+    <div class="gap"><label for="scenarioSearch">ค้นหาในประเด็นที่สนใจ (ชื่อภารกิจ หน่วยงาน หรือผู้เกี่ยวข้อง)</label><input id="scenarioSearch" type="search" placeholder="เช่น น้ำท่วม, สาธารณสุข, ข้อมูลข้ามหน่วยงาน"></div>
+    <h3 class="gap">เลือกประเด็นเพื่อดูสถานการณ์</h3>
+    <div id="scenarioCategories" class="grid three"></div>
     <p id="scenarioCount" class="muted" aria-live="polite"></p>
     <div id="scenarioCards" class="grid three"></div>
 
@@ -403,23 +406,23 @@ dialog::backdrop{background:#0009}
       <label for="workGrowth">
         ปริมาณงานเพิ่ม: <b id="workGrowthLabel"></b>%
       </label>
-      <input id="workGrowth" type="range" min="0" max="80">
+      <input id="workGrowth" type="range" min="0" max="100">
 
       <label for="staffCut">
         กำลังคนไม่พร้อมใช้งานเริ่มต้น: <b id="staffCutLabel"></b>%
       </label>
-      <input id="staffCut" type="range" min="0" max="30">
+      <input id="staffCut" type="range" min="0" max="100">
 
       <label for="digitalGain">
         แผน C เพิ่มกำลังบริการด้วยดิจิทัล:
         <b id="digitalGainLabel"></b>%
       </label>
-      <input id="digitalGain" type="range" min="0" max="40">
+      <input id="digitalGain" type="range" min="0" max="100">
 
       <label for="friction">
         ความล่าช้าจากการประสานงาน: <b id="frictionLabel"></b>%
       </label>
-      <input id="friction" type="range" min="0" max="35">
+      <input id="friction" type="range" min="0" max="100">
 
       <label for="structure">โครงสร้างในการจำลอง</label>
       <select id="structure">
@@ -1164,23 +1167,36 @@ const regionData={
   south:{name:"ภาคใต้",provinces:["สงขลา","นครศรีธรรมราช","ภูเก็ต","ยะลา"],mission:"ประสานศูนย์ช่วยเหลือภัยพิบัติและบริการหลายภาษา",external:"disaster",workGrowth:45,staffCut:12,digitalGain:20,friction:25}
 };
 function allScenarios(){return [...scenarioCatalog,...workspace.scenarios]}
+const scenarioCategoryNames=["บริการประชาชน","ภัยพิบัติและสิ่งแวดล้อม","สุขภาพและสังคม","เศรษฐกิจและพื้นที่","กำลังคนและโครงสร้าง","ข้อมูลและธรรมาภิบาล"];
+let selectedScenarioCategory="";
 function renderScenarios(){
   const scenarios=allScenarios();
   const search=$("scenarioSearch").value.trim().toLocaleLowerCase("th");
-  const category=$("scenarioCategory").value;
-  const visible=scenarios.filter(scenario=>{
-    const matchesCategory=category==="all"||scenario.category===category;
+  const matchesSearch=scenario=>{
     const searchable=[scenario.name,scenario.description,scenario.stakeholders,scenario.regionName,scenario.category].join(" ").toLocaleLowerCase("th");
-    return matchesCategory&&(!search||searchable.includes(search));
+    return !search||searchable.includes(search);
+  };
+  const matching=scenarios.filter(matchesSearch);
+  $("scenarioCategories").innerHTML=scenarioCategoryNames.map(category=>({
+    category,count:matching.filter(scenario=>scenario.category===category).length
+  })).filter(item=>!search||item.count>0).map(item=>`
+    <button type="button" class="category-choice ${selectedScenarioCategory===item.category?"selected":""}" data-scenario-category="${esc(item.category)}">
+      <b>${esc(item.category)}</b><span>${item.count} สถานการณ์ · กดเพื่อเปิดดู</span>
+    </button>`).join("")||'<div class="empty">ไม่พบหมวดที่ตรงกับคำค้น ลองใช้คำอื่น</div>';
+  document.querySelectorAll("[data-scenario-category]").forEach(button=>button.onclick=()=>{
+    selectedScenarioCategory=button.dataset.scenarioCategory;renderScenarios();
   });
-  $("scenarioCount").textContent=`แสดง ${visible.length} จาก ${scenarios.length} สถานการณ์ · ตัวอย่างตั้งต้น ${scenarioCatalog.length} รายการ${workspace.scenarios.length?` · ทีมสร้างเอง ${workspace.scenarios.length} รายการ`:""}`;
+  const visible=selectedScenarioCategory?matching.filter(scenario=>scenario.category===selectedScenarioCategory):[];
+  $("scenarioCount").textContent=selectedScenarioCategory
+    ?`หมวด ${selectedScenarioCategory} · พบ ${visible.length} สถานการณ์${workspace.scenarios.length?` · สถานการณ์ที่ทีมสร้าง ${workspace.scenarios.length} รายการ`:""}`
+    :`มี ${scenarioCatalog.length} สถานการณ์ตั้งต้น${workspace.scenarios.length?` และทีมสร้างเพิ่ม ${workspace.scenarios.length} รายการ`:""} · เลือกหมวดด้านบนเพื่อเปิดดูรายการ`;
   $("scenarioCards").innerHTML=visible.map((scenario,index)=>`
     <article class="card scenario"><span class="badge">${scenario.custom?"ทีมสร้าง":"สถานการณ์ไทย"} ${String(index+1).padStart(2,"0")}</span>
       <h3 class="gap">${esc(scenario.name)}</h3><p class="muted">${esc(scenario.description||"สถานการณ์ที่ทีมกำหนด")}</p>
       <div><span class="tag">${esc(scenario.category||"ทีมกำหนด")}</span> <span class="tag">${esc(scenario.regionName||"ส่วนกลาง")}</span></div>
       <p class="muted gap"><b>หน่วยงาน/ผู้เกี่ยวข้อง:</b> ${esc(scenario.stakeholders||"ทีมเจ้าภาพ · หน่วยงานคู่ประสาน · ประชาชนผู้รับบริการ")}</p>
       ${scenario.custom?`<button class="danger gap" data-delete-scenario="${esc(scenario.id)}">ลบออกจากรายการ</button>`:""}
-      <button class="gap" data-load-scenario="${esc(scenario.id)}">ใช้สถานการณ์นี้</button></article>`).join("")||'<div class="empty">ไม่พบสถานการณ์ที่ตรงกับคำค้น ลองเลือกหมวดอื่นหรือเคลียร์คำค้น</div>';
+      <button class="gap" data-load-scenario="${esc(scenario.id)}">ใช้สถานการณ์นี้</button></article>`).join("")||`<div class="empty">${selectedScenarioCategory?"หมวดนี้ยังไม่มีผลลัพธ์ตามคำค้น":"เลือกประเด็นที่สนใจเพื่อดูสถานการณ์"}</div>`;
   document.querySelectorAll("[data-load-scenario]").forEach(button=>button.onclick=()=>{
     const selected=allScenarios().find(item=>item.id===button.dataset.loadScenario);
     if(selected){loadScenario(selected);toast("โหลดสถานการณ์แล้ว ตรวจค่าก่อนจำลองได้เลย")}
@@ -1192,7 +1208,6 @@ function renderScenarios(){
 }
 renderScenarios();
 $("scenarioSearch").addEventListener("input",renderScenarios);
-$("scenarioCategory").addEventListener("change",renderScenarios);
 function scenarioFromRegion(regionKey,province){
   const region=regionData[regionKey];
   return {id:"map-"+regionKey+"-"+province,name:`${province}: ${region.mission}`,description:`ตัวอย่างภารกิจใน${region.name} · ${province}`,pressure:"สถานการณ์พื้นที่ · ข้อมูลสมมติ",region:regionKey,regionName:region.name,workGrowth:region.workGrowth,staffCut:region.staffCut,digitalGain:region.digitalGain,friction:region.friction,structure:"keep",stress:"surge",external:region.external};
@@ -1211,7 +1226,7 @@ document.querySelectorAll(".map-region").forEach(shape=>shape.addEventListener("
 $("customScenarioRegion").innerHTML=Object.entries(regionData).map(([key,value])=>`<option value="${key}">${esc(value.name)}</option>`).join("");
 $("customScenarioForm").onsubmit=event=>{
   event.preventDefault();const region=regionData[$("customScenarioRegion").value];
-  const scenario={id:uid(),name:$("customScenarioName").value.trim(),description:"ทีมสร้างสถานการณ์จากสมมติฐานที่กรอก",pressure:"ทีมกำหนด",category:"บริการประชาชน",regionName:region.name,workGrowth:valueNumber("customWork",0,80),staffCut:valueNumber("customStaff",0,30),digitalGain:valueNumber("customDigital",0,40),friction:valueNumber("customFriction",0,35),structure:"keep",stress:"none",external:$("customExternal").value,custom:true};
+  const scenario={id:uid(),name:$("customScenarioName").value.trim(),description:"ทีมสร้างสถานการณ์จากสมมติฐานที่กรอก",pressure:"ทีมกำหนด",category:"บริการประชาชน",regionName:region.name,workGrowth:valueNumber("customWork",0,100),staffCut:valueNumber("customStaff",0,100),digitalGain:valueNumber("customDigital",0,100),friction:valueNumber("customFriction",0,100),structure:"keep",stress:"none",external:$("customExternal").value,custom:true};
   workspace.scenarios.unshift(scenario);persist();renderScenarios();loadScenario(scenario);event.target.reset();openPage("simulation");toast("บันทึกสถานการณ์ในเครื่องนี้แล้ว");
 };
 
@@ -1237,10 +1252,10 @@ function readScenario() {
   return {
     id:currentPreset.id,
     name:$("caseName").value.trim()||currentPreset.name,
-    workGrowth:valueNumber("workGrowth",0,80),
-    staffCut:valueNumber("staffCut",0,30),
-    digitalGain:valueNumber("digitalGain",0,40),
-    friction:valueNumber("friction",0,35),
+    workGrowth:valueNumber("workGrowth",0,100),
+    staffCut:valueNumber("staffCut",0,100),
+    digitalGain:valueNumber("digitalGain",0,100),
+    friction:valueNumber("friction",0,100),
     structure:$("structure").value,
     stress:$("stress").value,
     external:$("externalFactor").value,
@@ -1705,13 +1720,13 @@ $("generateAI").onclick=()=>{
 
   const parsed={
     workGrowth:extractPercent(text,/(?:งานเพิ่ม|ภารกิจเพิ่ม)\s*(\d+)\s*%/,
-      base.workGrowth,80),
+      base.workGrowth,100),
     staffCut:extractPercent(text,/(?:ขาดคน|ลดคน|ลดกำลังคน)\s*(\d+)\s*%/,
-      base.staffCut,30),
+      base.staffCut,100),
     digitalGain:extractPercent(text,/(?:ดิจิทัล|ออนไลน์)\s*(\d+)\s*%/,
-      base.digitalGain,40),
+      base.digitalGain,100),
     friction:extractPercent(text,/ประสานงาน\s*(\d+)\s*%/,
-      base.friction,35)
+      base.friction,100)
   };
 
   generatedScenario={
